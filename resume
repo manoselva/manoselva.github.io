@@ -1,0 +1,457 @@
+import React, { useState } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import {
+  Globe,
+  Moon,
+  Sun,
+  Mail,
+  GitHub,
+  Linkedin,
+  Menu,
+  X,
+  Code,
+  Image,
+  User,
+  Briefcase,
+} from "lucide-react";
+
+// NOTE: This single-file component assumes you have a React + Vite/Next setup
+// with TailwindCSS, framer-motion, lucide-react and the shadcn/ui (optional) installed.
+// Imports like `@/components/ui/*` reference shadcn-style components — replace with
+// your own component library or native elements if you don't use shadcn.
+
+// Example tiny shims for shadcn components if you don't have them installed
+const Card = ({ children, className = "" }) => (
+  <div className={`rounded-2xl p-6 shadow-lg bg-white/5 backdrop-blur-sm ${className}`}>{children}</div>
+);
+const Button = ({ children, className = "", ...props }) => (
+  <button
+    {...props}
+    className={`px-4 py-2 rounded-lg font-medium transition-all hover:scale-[1.02] ${className}`}
+  >
+    {children}
+  </button>
+);
+
+// Sample data
+const projects = [
+  {
+    id: 1,
+    title: "Aurora — Data Viz Dashboard",
+    description:
+      "A realtime analytics dashboard with custom charts, interactive filters and exportable reports.",
+    tags: ["React", "Recharts", "WebSocket", "Tailwind"],
+    image: "https://source.unsplash.com/collection/190727/800x600",
+    details:
+      "Designed and built complex data visualizations, optimized rendering and accessibility. Includes advanced theming and keyboard navigation.",
+  },
+  {
+    id: 2,
+    title: "Nova Studio — Branding Site",
+    description:
+      "Marketing site with motion-led storytelling, CMS integration and SEO-first structure.",
+    tags: ["Next.js", "Headless CMS", "Framer Motion"],
+    image: "https://source.unsplash.com/collection/190726/800x600",
+    details:
+      "Animated hero, scroll-driven transitions and performant image loading (LCP optimized).",
+  },
+  {
+    id: 3,
+    title: "Pixel Forge — Creative Tool",
+    description: "A web-based creative tool with canvas editing & export to SVG/PNG.",
+    tags: ["Canvas", "WebGL", "TypeScript"],
+    image: "https://source.unsplash.com/collection/190728/800x600",
+    details:
+      "Built a robust undo/redo architecture and plugin-friendly toolchain for third-party extensions.",
+  },
+];
+
+const testimonials = [
+  {
+    id: 1,
+    name: "Samira Patel",
+    role: "Head of Product — Orion Labs",
+    quote:
+      "Delivered a polished product and clear design thinking. The team loved the docs and the handoff was flawless.",
+  },
+  {
+    id: 2,
+    name: "Carlos Mendes",
+    role: "Engineering Manager — BlueWave",
+    quote:
+      "Attention to performance and accessibility were a standout. Highly recommended for complex interfaces.",
+  },
+];
+
+export default function PortfolioApp() {
+  const [dark, setDark] = useState(true);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [activeProject, setActiveProject] = useState(null);
+
+  return (
+    <div className={`${dark ? "dark" : ""}`}>
+      <main className="min-h-screen bg-gradient-to-b from-[#0f172a] via-[#071026] to-[#020617] text-slate-100 antialiased">
+        <div className="max-w-6xl mx-auto px-6 lg:px-8 py-8">
+          {/* NAVBAR */}
+          <nav className="flex items-center justify-between py-4">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-pink-500 via-violet-500 to-indigo-500 flex items-center justify-center text-black font-bold">AP</div>
+                <span className="font-semibold text-lg">Aria Portfolio</span>
+              </div>
+            </div>
+
+            <div className="hidden md:flex items-center gap-6">
+              <a href="#about" className="hover:underline">About</a>
+              <a href="#projects" className="hover:underline">Projects</a>
+              <a href="#skills" className="hover:underline">Skills</a>
+              <a href="#contact" className="hover:underline">Contact</a>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setDark((s) => !s)}
+                  aria-label="Toggle dark mode"
+                  className="p-2 rounded-lg bg-white/5 hover:bg-white/7"
+                >
+                  {dark ? <Sun size={16} /> : <Moon size={16} />}
+                </button>
+                <a
+                  href="#contact"
+                  className="inline-flex items-center gap-2 bg-gradient-to-r from-indigo-500 to-pink-500 px-4 py-2 rounded-lg shadow-md text-black font-semibold"
+                >
+                  <Mail size={16} /> Contact
+                </a>
+              </div>
+            </div>
+
+            <div className="md:hidden flex items-center gap-3">
+              <button onClick={() => setDark((s) => !s)} className="p-2 rounded-lg bg-white/5">
+                {dark ? <Sun size={16} /> : <Moon size={16} />}
+              </button>
+              <button
+                onClick={() => setMobileMenuOpen((s) => !s)}
+                className="p-2 rounded-lg bg-white/5"
+                aria-label="Toggle menu"
+              >
+                {mobileMenuOpen ? <X size={18} /> : <Menu size={18} />}
+              </button>
+            </div>
+          </nav>
+
+          {/* Mobile menu */}
+          <AnimatePresence>
+            {mobileMenuOpen && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="md:hidden mt-3 bg-white/3 rounded-2xl p-4"
+              >
+                <a href="#about" className="block py-2">About</a>
+                <a href="#projects" className="block py-2">Projects</a>
+                <a href="#skills" className="block py-2">Skills</a>
+                <a href="#contact" className="block py-2">Contact</a>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* HERO */}
+          <section className="mt-8 grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+            <motion.div
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="space-y-6"
+            >
+              <p className="inline-flex items-center gap-2 rounded-full bg-white/5 px-3 py-1 text-sm w-max">
+                <Globe size={14} /> Freelance & Contract
+              </p>
+
+              <h1 className="text-4xl sm:text-5xl font-extrabold leading-tight">
+                I design & build beautiful interfaces
+                <span className="block text-indigo-400 text-2xl mt-2 font-medium">for ambitious teams and founders.</span>
+              </h1>
+
+              <p className="text-slate-300 max-w-xl">
+                High-fidelity UI/UX, performance-minded frontend engineering, and product-focused design systems. I craft interfaces that are delightful, accessible and fast.
+              </p>
+
+              <div className="flex items-center gap-4">
+                <Button className="bg-gradient-to-r from-indigo-500 to-pink-500 text-black">Work with me</Button>
+                <a href="#projects" className="underline">See projects</a>
+              </div>
+
+              <div className="mt-4 flex items-center gap-4 text-sm text-slate-300">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-lg bg-white/3 flex items-center justify-center">
+                    <User size={16} />
+                  </div>
+                  <div>
+                    <div className="font-semibold">5+ years</div>
+                    <div className="text-xs">Product design & frontend</div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-lg bg-white/3 flex items-center justify-center">
+                    <Briefcase size={16} />
+                  </div>
+                  <div>
+                    <div className="font-semibold">Remote ready</div>
+                    <div className="text-xs">Worldwide collaborators</div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+
+            <motion.div
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.6 }}
+              className="relative"
+            >
+              <div className="rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-br from-white/3 to-white/2 p-1">
+                <div className="bg-gradient-to-br from-slate-900 to-slate-800 rounded-2xl p-6">
+                  <div className="flex items-center gap-4">
+                    <img
+                      src="https://images.unsplash.com/photo-1607746882042-944635dfe10e?auto=format&fit=crop&w=400&q=60"
+                      alt="avatar"
+                      className="w-24 h-24 rounded-xl object-cover ring-1 ring-white/10"
+                    />
+                    <div>
+                      <div className="text-xl font-semibold">Ariana P.</div>
+                      <div className="text-sm text-slate-300">Product Designer & Frontend Engineer</div>
+                      <div className="mt-2 flex items-center gap-2 text-xs text-slate-400">
+                        <span>Available for freelance</span>
+                        <span>•</span>
+                        <span>Timezone: IST</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-6 grid grid-cols-2 gap-3">
+                    <Card>
+                      <div className="text-sm text-slate-300">Primary</div>
+                      <div className="font-semibold">Design Systems</div>
+                    </Card>
+                    <Card>
+                      <div className="text-sm text-slate-300">Focus</div>
+                      <div className="font-semibold">Interfaces & Accessibility</div>
+                    </Card>
+                  </div>
+                </div>
+              </div>
+
+              {/* subtle parallax shapes */}
+              <div className="absolute -right-8 -bottom-8 w-40 h-40 rounded-full bg-gradient-to-br from-pink-600/40 to-indigo-500/30 blur-3xl transform rotate-12" />
+            </motion.div>
+          </section>
+
+          {/* PROJECTS */}
+          <section id="projects" className="mt-20">
+            <h2 className="text-2xl font-bold mb-6">Selected Projects</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {projects.map((p) => (
+                <motion.article
+                  key={p.id}
+                  whileHover={{ translateY: -6 }}
+                  className="relative group"
+                >
+                  <div className="rounded-2xl overflow-hidden bg-white/3">
+                    <img src={p.image} alt={p.title} className="w-full h-44 object-cover" />
+                    <div className="p-5">
+                      <div className="flex items-center justify-between">
+                        <h3 className="text-lg font-semibold">{p.title}</h3>
+                        <div className="text-sm text-slate-300">{p.tags.join(' • ')}</div>
+                      </div>
+
+                      <p className="mt-3 text-slate-300 text-sm">{p.description}</p>
+
+                      <div className="mt-4 flex items-center gap-3">
+                        <Button onClick={() => setActiveProject(p)} className="bg-gradient-to-r from-indigo-500 to-pink-500 text-black">View details</Button>
+                        <a href="#" className="text-sm underline">Live demo</a>
+                      </div>
+                    </div>
+                  </div>
+                </motion.article>
+              ))}
+            </div>
+          </section>
+
+          {/* PROJECT MODAL */}
+          <AnimatePresence>
+            {activeProject && (
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                className="fixed inset-0 z-50 flex items-center justify-center p-6"
+              >
+                <div className="absolute inset-0 bg-black/60" onClick={() => setActiveProject(null)} />
+                <motion.div
+                  initial={{ y: 30, scale: 0.98 }}
+                  animate={{ y: 0, scale: 1 }}
+                  exit={{ y: 10, scale: 0.98 }}
+                  transition={{ type: "spring", stiffness: 300, damping: 30 }}
+                  className="relative max-w-3xl w-full"
+                >
+                  <Card className="p-0 overflow-hidden">
+                    <div className="grid md:grid-cols-2">
+                      <img src={activeProject.image} alt={activeProject.title} className="w-full h-64 object-cover" />
+                      <div className="p-6">
+                        <div className="flex items-start justify-between gap-4">
+                          <div>
+                            <h3 className="text-2xl font-semibold">{activeProject.title}</h3>
+                            <p className="text-slate-300 mt-2">{activeProject.details}</p>
+                          </div>
+                          <button onClick={() => setActiveProject(null)} className="p-2 rounded-lg bg-white/5">
+                            <X size={18} />
+                          </button>
+                        </div>
+
+                        <div className="mt-6">
+                          <div className="text-sm text-slate-300">Tech</div>
+                          <div className="flex gap-2 mt-2 flex-wrap">
+                            {activeProject.tags.map((t) => (
+                              <span key={t} className="text-xs px-2 py-1 bg-white/3 rounded-full">{t}</span>
+                            ))}
+                          </div>
+
+                          <div className="mt-6 flex gap-3">
+                            <Button className="bg-gradient-to-r from-indigo-500 to-pink-500 text-black">Request a similar project</Button>
+                            <a href="#" className="underline">View code</a>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </Card>
+                </motion.div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* SKILLS */}
+          <section id="skills" className="mt-20">
+            <h2 className="text-2xl font-bold mb-6">Skills & Tools</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card>
+                <div className="font-semibold">Frontend</div>
+                <div className="text-slate-300 text-sm mt-2">React, Next.js, TypeScript, Tailwind</div>
+                <div className="mt-4 space-y-3">
+                  {[
+                    { name: "Accessibility (A11y)", val: 92 },
+                    { name: "Performance", val: 88 },
+                    { name: "Design Systems", val: 85 },
+                  ].map((s) => (
+                    <div key={s.name}>
+                      <div className="flex justify-between text-sm mb-1"> 
+                        <span>{s.name}</span>
+                        <span>{s.val}%</span>
+                      </div>
+                      <div className="w-full bg-white/6 rounded-full h-2">
+                        <div className="h-2 rounded-full bg-gradient-to-r from-indigo-500 to-pink-500" style={{ width: `${s.val}%` }} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </Card>
+
+              <Card>
+                <div className="font-semibold">Design</div>
+                <div className="text-slate-300 text-sm mt-2">Figma, Framer Motion, Prototyping</div>
+                <div className="mt-4">
+                  <p className="text-sm text-slate-300">I focus on motion-led interfaces and systematized components for reliable handoffs to engineering.</p>
+                </div>
+              </Card>
+
+              <Card>
+                <div className="font-semibold">Tools</div>
+                <div className="text-slate-300 text-sm mt-2">Git, CI/CD, Testing, Accessibility Audits</div>
+                <div className="mt-4">
+                  <div className="text-sm text-slate-300">Recommended stack for new projects: Next.js + Tailwind + TypeScript + Framer Motion.</div>
+                </div>
+              </Card>
+            </div>
+          </section>
+
+          {/* TESTIMONIALS */}
+          <section className="mt-20">
+            <h2 className="text-2xl font-bold mb-6">Testimonials</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {testimonials.map((t) => (
+                <Card key={t.id}>
+                  <div className="text-slate-300">"{t.quote}"</div>
+                  <div className="mt-4 font-semibold">{t.name}</div>
+                  <div className="text-sm text-slate-400">{t.role}</div>
+                </Card>
+              ))}
+            </div>
+          </section>
+
+          {/* CONTACT */}
+          <section id="contact" className="mt-20">
+            <h2 className="text-2xl font-bold mb-6">Get in touch</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <Card>
+                <form className="space-y-4" onSubmit={(e) => { e.preventDefault(); alert('Thanks! Message sent (example).'); }}>
+                  <div>
+                    <label className="text-sm text-slate-300">Your name</label>
+                    <input required className="w-full mt-2 rounded-lg bg-white/5 p-3 outline-none" placeholder="Jane Doe" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-slate-300">Email</label>
+                    <input type="email" required className="w-full mt-2 rounded-lg bg-white/5 p-3 outline-none" placeholder="you@company.com" />
+                  </div>
+                  <div>
+                    <label className="text-sm text-slate-300">Message</label>
+                    <textarea required className="w-full mt-2 rounded-lg bg-white/5 p-3 outline-none" rows={5} placeholder="Tell me about your project..." />
+                  </div>
+
+                  <div className="flex items-center gap-3">
+                    <Button type="submit" className="bg-gradient-to-r from-indigo-500 to-pink-500 text-black">Send message</Button>
+                    <a href="mailto:aria@example.com" className="underline flex items-center gap-2"><Mail size={14} /> aria@example.com</a>
+                  </div>
+                </form>
+              </Card>
+
+              <Card>
+                <div className="space-y-4">
+                  <div>
+                    <div className="font-semibold">Availability</div>
+                    <div className="text-sm text-slate-300">Open to freelance & full-time. Based in India (IST).</div>
+                  </div>
+
+                  <div>
+                    <div className="font-semibold">Social</div>
+                    <div className="flex items-center gap-3 mt-2">
+                      <a href="#" aria-label="GitHub" className="p-2 rounded-lg bg-white/5"><GitHub size={16} /></a>
+                      <a href="#" aria-label="LinkedIn" className="p-2 rounded-lg bg-white/5"><Linkedin size={16} /></a>
+                      <a href="#" aria-label="Website" className="p-2 rounded-lg bg-white/5"><Globe size={16} /></a>
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="font-semibold">Quick links</div>
+                    <div className="mt-2 text-sm text-slate-300 space-y-1">
+                      <div><a href="#projects" className="underline">Case studies</a></div>
+                      <div><a href="#skills" className="underline">Process & approach</a></div>
+                    </div>
+                  </div>
+                </div>
+              </Card>
+            </div>
+          </section>
+
+          {/* FOOTER */}
+          <footer className="mt-20 py-8 text-sm text-slate-400 flex items-center justify-between">
+            <div>© {new Date().getFullYear()} Ariana P. — Crafted with care.</div>
+            <div className="flex items-center gap-4">
+              <a href="#" className="flex items-center gap-2"> <GitHub size={14} /> GitHub</a>
+              <a href="#" className="flex items-center gap-2"> <Linkedin size={14} /> LinkedIn</a>
+            </div>
+          </footer>
+        </div>
+      </main>
+    </div>
+  );
+}
