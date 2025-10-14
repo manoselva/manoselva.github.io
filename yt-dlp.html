@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>yt-dlp Command Generator</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background-color: #000000;
+        }
+        .multiselect-option {
+            transition: all 0.2s ease;
+        }
+        .multiselect-option:hover {
+            background-color: rgba(6, 182, 212, 0.1);
+        }
+        .multiselect-option.selected {
+            background-color: rgba(6, 182, 212, 0.2);
+            border-left: 3px solid #06b6d4;
+        }
+        .command-output {
+            font-family: 'Courier New', monospace;
+            background-color: #0a0a0a;
+            border: 1px solid #06b6d4;
+        }
+        .glow {
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen p-6">
+    <div class="max-w-4xl mx-auto">
+        <!-- Header -->
+        <div class="text-center mb-8">
+            <h1 class="text-4xl md:text-5xl font-bold text-cyan-400 mb-2">yt-dlp Command Generator 🤖</h1>
+            <p class="text-gray-400">Generate custom download commands with ease</p>
+        </div>
+
+        <!-- Main Card -->
+        <div class="bg-gray-900 rounded-lg p-6 md:p-8 glow mb-6">
+            <!-- URL Input -->
+            <div class="mb-6">
+                <label class="block text-cyan-400 font-semibold mb-2"> Video URL 🔗</label>
+                <input 
+                    type="text" 
+                    id="videoUrl" 
+                    placeholder="https://www.youtube.com/watch?v=..." 
+                    class="w-full bg-black text-white border border-gray-700 rounded-lg px-4 py-3 focus:outline-none focus:border-cyan-400 transition-colors"
+                >
+            </div>
+
+            <!-- Options Multiselect -->
+            <div class="mb-6">
+                <label class="block text-cyan-400 font-semibold mb-2">Select Options 📑 </label>
+                <div class="bg-black border border-gray-700 rounded-lg p-2 max-h-96 overflow-y-auto">
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="--extract-audio --audio-format mp3">
+                        <div class="font-medium text-green-400">Download Audio Only (MP3)</div>
+                        <div class="text-sm text-gray-400">Extract and convert to MP3 format</div>
+                    </div>
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="-f bestvideo+bestaudio">
+                        <div class="font-medium text-green-400">Download Best Quality Video</div>
+                        <div class="text-sm text-gray-400">Best video and audio combined</div>
+                    </div>
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="-f worst">
+                        <div class="font-medium text-green-400">Download Worst Quality</div>
+                        <div class="text-sm text-gray-400">Lowest quality for minimal file size</div>
+                    </div>
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="--embed-subs">
+                        <div class="font-medium text-green-400">Embed Subtitles</div>
+                        <div class="text-sm text-gray-400">Embed available subtitles into video</div>
+                    </div>
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="--write-auto-sub">
+                        <div class="font-medium text-green-400">Write Auto-Generated Subtitles</div>
+                        <div class="text-sm text-gray-400">Download auto-generated subtitles</div>
+                    </div>
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="--write-sub">
+                        <div class="font-medium text-green-400">Write Subtitles</div>
+                        <div class="text-sm text-gray-400">Download all available subtitles</div>
+                    </div>
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="--yes-playlist">
+                        <div class="font-medium text-green-400">Download Playlist</div>
+                        <div class="text-sm text-gray-400">Download entire playlist if URL is a playlist</div>
+                    </div>
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="--no-playlist">
+                        <div class="font-medium text-green-400">Download Single Video Only</div>
+                        <div class="text-sm text-gray-400">Download only the video, not the playlist</div>
+                    </div>
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="--embed-thumbnail">
+                        <div class="font-medium text-green-400">Embed Thumbnail</div>
+                        <div class="text-sm text-gray-400">Embed thumbnail into video file</div>
+                    </div>
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="--add-metadata">
+                        <div class="font-medium text-green-400">Add Metadata</div>
+                        <div class="text-sm text-gray-400">Write metadata to video file</div>
+                    </div>
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="--embed-chapters">
+                        <div class="font-medium text-green-400">Embed Chapters</div>
+                        <div class="text-sm text-gray-400">Add chapter markers to video file</div>
+                    </div>
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="-f 'bestvideo[height<=720]+bestaudio/best[height<=720]'">
+                        <div class="font-medium text-green-400">Download 720p Max</div>
+                        <div class="text-sm text-gray-400">Limit video quality to 720p</div>
+                    </div>
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="-f 'bestvideo[height<=480]+bestaudio/best[height<=480]'">
+                        <div class="font-medium text-green-400">Download 480p Max</div>
+                        <div class="text-sm text-gray-400">Limit video quality to 480p</div>
+                    </div>
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="--cookies-from-browser chrome">
+                        <div class="font-medium text-green-400">Use Chrome Cookies</div>
+                        <div class="text-sm text-gray-400">Access videos requiring login via Chrome cookies</div>
+                    </div>
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="--geo-bypass">
+                        <div class="font-medium text-green-400">Bypass Geo Restrictions</div>
+                        <div class="text-sm text-gray-400">Attempt to bypass geographical restrictions</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generate Button -->
+            <button 
+                id="generateBtn" 
+                class="w-full bg-gradient-to-r from-cyan-500 to-green-500 text-black font-bold py-3 px-6 rounded-lg hover:from-cyan-600 hover:to-green-600 transition-all transform hover:scale-105"
+            >
+                Generate Command
+            </button>
+        </div>
+
+        <!-- Command Output -->
+        <div id="outputSection" class="bg-gray-900 rounded-lg p-6 md:p-8 glow hidden">
+            <div class="flex justify-between items-center mb-4">
+                <label class="text-cyan-400 font-semibold">Generated Command</label>
+                <button 
+                    id="copyBtn" 
+                    class="bg-green-600 hover:bg-green-700 text-white font-semibold py-2 px-4 rounded-lg transition-colors flex items-center gap-2"
+                >
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path>
+                    </svg>
+                    Copy Command
+                </button>
+            </div>
+            <textarea 
+                id="commandOutput" 
+                readonly 
+                class="command-output w-full text-green-400 rounded-lg px-4 py-3 focus:outline-none resize-none"
+                rows="4"
+            ></textarea>
+            <div id="copyNotification" class="hidden mt-2 text-green-400 text-sm">
+                ✓ Command copied to clipboard!
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-8 text-gray-500 text-sm">
+            <p>Built for yt-dlp • Select multiple options by clicking them</p>
+        </div>
+    </div>
+
+    <script>
+        const options = document.querySelectorAll('.multiselect-option');
+        const generateBtn = document.getElementById('generateBtn');
+        const videoUrlInput = document.getElementById('videoUrl');
+        const commandOutput = document.getElementById('commandOutput');
+        const outputSection = document.getElementById('outputSection');
+        const copyBtn = document.getElementById('copyBtn');
+        const copyNotification = document.getElementById('copyNotification');
+
+        // Toggle option selection
+        options.forEach(option => {
+            option.addEventListener('click', function() {
+                this.classList.toggle('selected');
+            });
+        });
+
+        // Generate command
+        generateBtn.addEventListener('click', function() {
+            const url = videoUrlInput.value.trim();
+            
+            if (!url) {
+                alert('Please enter a YouTube URL');
+                return;
+            }
+
+            const selectedOptions = Array.from(document.querySelectorAll('.multiselect-option.selected'));
+            const flags = selectedOptions.map(opt => opt.getAttribute('data-flag')).join(' ');
+            
+            const command = `yt-dlp "${url}"${flags ? ' ' + flags : ''}`;
+            
+            commandOutput.value = command;
+            outputSection.classList.remove('hidden');
+            
+            // Scroll to output
+            outputSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        });
+
+        // Copy command to clipboard
+        copyBtn.addEventListener('click', function() {
+            commandOutput.select();
+            navigator.clipboard.writeText(commandOutput.value).then(() => {
+                copyNotification.classList.remove('hidden');
+                setTimeout(() => {
+                    copyNotification.classList.add('hidden');
+                }, 2000);
+            });
+        });
+
+        // Allow enter key in URL input
+        videoUrlInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                generateBtn.click();
+            }
+        });
+    </script>
+</body>
+</html>
