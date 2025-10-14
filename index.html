@@ -1,31 +1,319 @@
-<html>
-	<head>
-		<script type="text/javascript" src="https://www.bullionvault.com/chart/bullionvaultchart.js" ></script>
-		<script type="text/javascript" >
-			var options = {
-				bullion: 'gold',
-				currency: 'USD',
-				timeframe: '1d',
-				chartType: 'line',
-				miniChartModeAxis: 'oz',
-				referrerID: 'MYUSERNAME',
-				containerDefinedSize: true,
-				miniChartMode: false,
-				displayLatestPriceLine: true,
-				switchBullion: true,
-				switchCurrency: true,
-				switchTimeframe: true,
-				switchChartType: true,
-				exportButton: true
-			};
-			var chartBV = new BullionVaultChart(options, 'embed');
-		</script>
-		<title>Gold Chart</title>
-		<link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2536/2536800.png" type="image/png" />
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Gold & Silver Prices</title>
+    <script type="text/javascript" src="https://www.bullionvault.com/chart/bullionvaultchart.js"></script>
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2536/2536800.png" type="image/png" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-	</head>
-	<body>
-	<div id="embed" style="height: 400px; width: 660px; "></div>
-	</body>
-	</html>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1d2e;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
 
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 40px;
+            font-size: 2.5em;
+            background: linear-gradient(45deg, #00ffff, #ffd700);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 600;
+        }
+
+        .price-summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .summary-card {
+            background: linear-gradient(135deg, #242938 0%, #1e2230 100%);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+        }
+
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 50px rgba(0, 255, 255, 0.2);
+        }
+
+        .summary-card.gold {
+            border-left: 4px solid #ffd700;
+        }
+
+        .summary-card.silver {
+            border-left: 4px solid #c0c0c0;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .metal-icon {
+            font-size: 2em;
+        }
+
+        .metal-name {
+            font-size: 1.4em;
+            font-weight: 600;
+        }
+
+        .gold .metal-name {
+            color: #ffd700;
+        }
+
+        .silver .metal-name {
+            color: #c0c0c0;
+        }
+
+        .price-large {
+            font-size: 2.8em;
+            font-weight: 700;
+            color: #00ffff;
+            margin: 15px 0;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+        }
+
+        .change-info {
+            display: flex;
+            gap: 15px;
+            font-size: 1.1em;
+            margin-top: 10px;
+        }
+
+        .change-positive {
+            color: #00ff88;
+        }
+
+        .change-negative {
+            color: #ff4444;
+        }
+
+        .chart-section {
+            background: linear-gradient(135deg, #242938 0%, #1e2230 100%);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .chart-title {
+            font-size: 1.6em;
+            color: #00ffff;
+            margin-bottom: 20px;
+            font-weight: 600;
+        }
+
+        .chart-container {
+            width: 100%;
+            min-height: 500px;
+            background: #1a1d2e;
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        #embed {
+            width: 100% !important;
+            height: 500px !important;
+            min-height: 500px;
+        }
+
+        .status-bar {
+            text-align: center;
+            padding: 12px;
+            background: rgba(0, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+            margin-right: 8px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .last-update {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            margin-top: 30px;
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .chart-container {
+                min-height: 400px;
+            }
+
+            #embed {
+                height: 400px !important;
+                min-height: 400px;
+            }
+
+            .price-large {
+                font-size: 2.2em;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>⚡ Live Precious Metals Monitor</h1>
+        
+        <div class="status-bar">
+            <span class="status-indicator"></span>
+            <span id="statusText">Live - Real-time updates</span>
+        </div>
+
+        <div class="price-summary">
+            <div class="summary-card gold">
+                <div class="card-header">
+                    <span class="metal-icon">🥇</span>
+                    <span class="metal-name">GOLD</span>
+                </div>
+                <div class="price-large" id="goldPrice">$0.00</div>
+                <div class="change-info">
+                    <span id="goldChange">$0.00</span>
+                    <span id="goldChangePercent">0.00%</span>
+                </div>
+            </div>
+
+            <div class="summary-card silver">
+                <div class="card-header">
+                    <span class="metal-icon">🥈</span>
+                    <span class="metal-name">SILVER</span>
+                </div>
+                <div class="price-large" id="silverPrice">$0.00</div>
+                <div class="change-info">
+                    <span id="silverChange">$0.00</span>
+                    <span id="silverChangePercent">0.00%</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="chart-section">
+            <div class="chart-title">📊 Live Price Chart</div>
+            <div class="chart-container">
+                <div id="embed"></div>
+            </div>
+        </div>
+
+        <div class="last-update">
+            Last updated: <span id="lastUpdate">Never</span>
+        </div>
+    </div>
+
+    <script type="text/javascript">
+        // Initialize BullionVault Chart
+        var options = {
+            bullion: 'gold',
+            currency: 'USD',
+            timeframe: '10m',
+            chartType: 'line',
+            miniChartModeAxis: 'oz',
+            containerDefinedSize: true,
+            miniChartMode: false,
+            displayLatestPriceLine: true,
+            switchBullion: true,
+            switchCurrency: true,
+            switchTimeframe: true,
+            switchChartType: true,
+            exportButton: true
+        };
+        var chartBV = new BullionVaultChart(options, 'embed');
+
+        // Fetch live prices for the cards
+        async function fetchPrices() {
+            try {
+                const response = await fetch('https://data-asg.goldprice.org/dbXRates/USD');
+                if (!response.ok) throw new Error('API request failed');
+                
+                const data = await response.json();
+
+                if (data.items && data.items.length > 0) {
+                    // Gold
+                    const goldPrice = data.items[0].xauPrice;
+                    const goldPrevClose = data.items[0].xauClose || goldPrice;
+                    const goldChange = goldPrice - goldPrevClose;
+                    const goldChangePercent = (goldChange / goldPrevClose) * 100;
+                    
+                    document.getElementById('goldPrice').textContent = '$' + goldPrice.toFixed(2);
+                    
+                    const goldChangeEl = document.getElementById('goldChange');
+                    goldChangeEl.textContent = (goldChange >= 0 ? '+' : '') + goldChange.toFixed(2);
+                    goldChangeEl.className = goldChange >= 0 ? 'change-positive' : 'change-negative';
+                    
+                    const goldPercentEl = document.getElementById('goldChangePercent');
+                    goldPercentEl.textContent = (goldChangePercent >= 0 ? '+' : '') + goldChangePercent.toFixed(2) + '%';
+                    goldPercentEl.className = goldChangePercent >= 0 ? 'change-positive' : 'change-negative';
+
+                    // Silver
+                    const silverPrice = data.items[0].xagPrice;
+                    const silverPrevClose = data.items[0].xagClose || silverPrice;
+                    const silverChange = silverPrice - silverPrevClose;
+                    const silverChangePercent = (silverChange / silverPrevClose) * 100;
+                    
+                    document.getElementById('silverPrice').textContent = '$' + silverPrice.toFixed(2);
+                    
+                    const silverChangeEl = document.getElementById('silverChange');
+                    silverChangeEl.textContent = (silverChange >= 0 ? '+' : '') + silverChange.toFixed(2);
+                    silverChangeEl.className = silverChange >= 0 ? 'change-positive' : 'change-negative';
+                    
+                    const silverPercentEl = document.getElementById('silverChangePercent');
+                    silverPercentEl.textContent = (silverChangePercent >= 0 ? '+' : '') + silverChangePercent.toFixed(2) + '%';
+                    silverPercentEl.className = silverChangePercent >= 0 ? 'change-positive' : 'change-negative';
+
+                    document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
+                    document.getElementById('statusText').textContent = 'Live - Real-time updates';
+                }
+            } catch (error) {
+                console.error('Error fetching prices:', error);
+                document.getElementById('statusText').textContent = 'Error - Retrying...';
+            }
+        }
+
+        // Initialize and auto-update
+        fetchPrices();
+        setInterval(fetchPrices, 30000); // Update every 30 seconds
+    </script>
+</body>
+</html>
