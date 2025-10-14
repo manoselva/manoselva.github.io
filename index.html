@@ -134,11 +134,13 @@
             min-height: 500px;
             background: #1a1d2e;
             border-radius: 10px;
-            overflow: hidden;
+            overflow-x: auto;
+            overflow-y: hidden;
         }
 
         #embed {
             width: 100% !important;
+            min-width: 800px;
             height: 500px !important;
             min-height: 500px;
         }
@@ -182,15 +184,46 @@
 
             .chart-container {
                 min-height: 400px;
+                overflow-x: scroll;
+                -webkit-overflow-scrolling: touch;
             }
 
             #embed {
+                min-width: 700px;
                 height: 400px !important;
                 min-height: 400px;
             }
 
             .price-large {
                 font-size: 2.2em;
+            }
+
+            .chart-title {
+                font-size: 1.3em;
+            }
+
+            .chart-section {
+                padding: 20px 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .chart-container {
+                min-height: 350px;
+            }
+
+            #embed {
+                min-width: 600px;
+                height: 350px !important;
+                min-height: 350px;
+            }
+
+            .summary-card {
+                padding: 20px;
+            }
+
+            .price-large {
+                font-size: 2em;
             }
         }
     </style>
@@ -231,7 +264,7 @@
         </div>
 
         <div class="chart-section">
-            <div class="chart-title">📊 Live Price Chart</div>
+            <div class="chart-title">📊 Live Price Chart <span style="font-size: 0.7em; color: #888; font-weight: normal;">(Swipe to scroll on mobile)</span></div>
             <div class="chart-container">
                 <div id="embed"></div>
             </div>
