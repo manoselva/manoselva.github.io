@@ -54,6 +54,19 @@
             <div class="mb-6">
                 <label class="block text-cyan-400 font-semibold mb-2">Select Options 📑 </label>
                 <div class="bg-black border border-gray-700 rounded-lg p-2 max-h-96 overflow-y-auto">
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="-a urls.txt">
+                        <div class="font-medium text-green-400">Download from File</div>
+                        <div class="text-sm text-gray-400">Downloading Multiple URLs From a File</div>
+                    </div>
+                    
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="-f "bestvideo[height=1440][fps=60]+bestaudio/best"">
+                        <div class="font-medium text-green-400">Specify Resolution</div>
+                        <div class="text-sm text-gray-400">Download Specific Resolution (e.g., 2160p 4K)</div>
+                    </div>
+                    <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="--write-auto-subs --sub-langs "en" --embed-subs">
+                        <div class="font-medium text-green-400">Embed Auto Generated Subtitles</div>
+                        <div class="text-sm text-gray-400">Downloading and Embedding auto generated Subtitles</div>
+                    </div>
                     <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white" data-flag="--extract-audio --audio-format mp3">
                         <div class="font-medium text-green-400">Download Audio Only (MP3)</div>
                         <div class="text-sm text-gray-400">Extract and convert to MP3 format</div>
