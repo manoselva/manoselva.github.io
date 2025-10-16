@@ -27,6 +27,41 @@
         .glow {
             box-shadow: 0 0 20px rgba(6, 182, 212, 0.3);
         }
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal.active {
+            display: flex;
+        }
+        .modal-content {
+            background-color: #1a1a1a;
+            border: 2px solid #06b6d4;
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        .resolution-btn, .fps-btn {
+            transition: all 0.2s ease;
+        }
+        .resolution-btn:hover, .fps-btn:hover {
+            transform: scale(1.05);
+        }
+        .resolution-btn.selected, .fps-btn.selected {
+            background-color: #06b6d4;
+            color: #000;
+        }
     </style>
 </head>
 <body class="min-h-screen p-6">
@@ -101,107 +136,197 @@
         </div>
     </div>
 
+    <!-- Resolution Modal -->
+    <div id="resolutionModal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold text-cyan-400 mb-4">Select Resolution & FPS</h2>
+            
+            <div class="mb-6">
+                <label class="block text-green-400 font-semibold mb-3">Resolution</label>
+                <div class="grid grid-cols-3 gap-2" id="resolutionOptions">
+                    <button class="resolution-btn bg-gray-800 text-white py-2 px-4 rounded-lg" data-res="144">144p</button>
+                    <button class="resolution-btn bg-gray-800 text-white py-2 px-4 rounded-lg" data-res="240">240p</button>
+                    <button class="resolution-btn bg-gray-800 text-white py-2 px-4 rounded-lg" data-res="360">360p</button>
+                    <button class="resolution-btn bg-gray-800 text-white py-2 px-4 rounded-lg" data-res="480">480p</button>
+                    <button class="resolution-btn bg-gray-800 text-white py-2 px-4 rounded-lg" data-res="720">720p</button>
+                    <button class="resolution-btn bg-gray-800 text-white py-2 px-4 rounded-lg" data-res="1080">1080p</button>
+                    <button class="resolution-btn bg-gray-800 text-white py-2 px-4 rounded-lg" data-res="1440">1440p</button>
+                    <button class="resolution-btn bg-gray-800 text-white py-2 px-4 rounded-lg" data-res="2160">2160p</button>
+                </div>
+            </div>
+
+            <div class="mb-6">
+                <label class="block text-green-400 font-semibold mb-3">FPS (Optional)</label>
+                <div class="grid grid-cols-4 gap-2" id="fpsOptions">
+                    <button class="fps-btn bg-gray-800 text-white py-2 px-4 rounded-lg" data-fps="24">24</button>
+                    <button class="fps-btn bg-gray-800 text-white py-2 px-4 rounded-lg" data-fps="30">30</button>
+                    <button class="fps-btn bg-gray-800 text-white py-2 px-4 rounded-lg" data-fps="60">60</button>
+                    <button class="fps-btn bg-gray-800 text-white py-2 px-4 rounded-lg" data-fps="120">120</button>
+                </div>
+            </div>
+
+            <div class="flex gap-3">
+                <button id="applyResolution" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Apply
+                </button>
+                <button id="cancelResolution" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Section Modal -->
+    <div id="sectionModal" class="modal">
+        <div class="modal-content">
+            <h2 class="text-2xl font-bold text-cyan-400 mb-4">Configure Section Download</h2>
+            
+            <div id="sectionsContainer">
+                <div class="section-input mb-4 p-4 bg-gray-800 rounded-lg">
+                    <label class="block text-green-400 font-semibold mb-2">Section 1</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-1">Start Time</label>
+                            <input type="text" class="section-start w-full bg-black text-white border border-gray-700 rounded px-3 py-2" placeholder="00:00:00" value="00:00:00">
+                        </div>
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-1">End Time</label>
+                            <input type="text" class="section-end w-full bg-black text-white border border-gray-700 rounded px-3 py-2" placeholder="00:00:00" value="00:00:00">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <button id="addSection" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-bold py-2 px-4 rounded-lg transition-colors mb-4">
+                + Add Another Section
+            </button>
+
+            <div class="flex gap-3">
+                <button id="applySection" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Apply
+                </button>
+                <button id="cancelSection" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Cancel
+                </button>
+            </div>
+        </div>
+    </div>
+
     <script>
         const optionsData = [
             {
                 flag: '-a urls.txt',
                 title: 'Download from File',
-                description: 'Downloading Multiple URLs From a File'
+                description: 'Downloading Multiple URLs From a File',
+                type: 'normal'
             },
             {
-                flag: "-f 'bestvideo[height=1440][fps=60]+bestaudio/best'",
+                flag: 'resolution',
                 title: 'Specify Resolution',
-                description: 'Download Specific Resolution (e.g., 2160p 4K)'
+                description: 'Download Specific Resolution and FPS',
+                type: 'modal'
             },
             {
-                flag: "--write-auto-subsa",
+                flag: "--write-auto-subs --sub-langs 'en' --embed-subs",
                 title: 'Embed Auto Generated Subtitles',
-                description: 'Downloading and Embedding auto generated Subtitles'
+                description: 'Downloading and Embedding auto generated Subtitles',
+                type: 'normal'
             },
             {
-                flag: "--download-sections '*00:00:41-00:01:24'",
-                title: 'Single Section Download',
-                description: 'Download specific section of video'
-            },
-            {
-                flag: "--download-sections '*00:00:41-00:01:24,*00:02:30-00:03:15'",
-                title: 'Multiple Section Download',
-                description: 'Download multiple sections of video'
+                flag: 'section',
+                title: 'Section Download',
+                description: 'Download specific section(s) of video',
+                type: 'modal'
             },
             {
                 flag: '--extract-audio --audio-format mp3',
                 title: 'Download Audio Only (MP3)',
-                description: 'Extract and convert to MP3 format'
+                description: 'Extract and convert to MP3 format',
+                type: 'normal'
             },
             {
                 flag: '-f bestvideo+bestaudio',
                 title: 'Download Best Quality Video',
-                description: 'Best video and audio combined'
+                description: 'Best video and audio combined',
+                type: 'normal'
             },
             {
                 flag: '-f worst',
                 title: 'Download Worst Quality',
-                description: 'Lowest quality for minimal file size'
+                description: 'Lowest quality for minimal file size',
+                type: 'normal'
             },
             {
                 flag: '--embed-subs',
                 title: 'Embed Subtitles',
-                description: 'Embed available subtitles into video'
+                description: 'Embed available subtitles into video',
+                type: 'normal'
             },
             {
                 flag: '--write-auto-sub',
                 title: 'Write Auto-Generated Subtitles',
-                description: 'Download auto-generated subtitles'
+                description: 'Download auto-generated subtitles',
+                type: 'normal'
             },
             {
                 flag: '--write-sub',
                 title: 'Write Subtitles',
-                description: 'Download all available subtitles'
+                description: 'Download all available subtitles',
+                type: 'normal'
             },
             {
                 flag: '--yes-playlist',
                 title: 'Download Playlist',
-                description: 'Download entire playlist if URL is a playlist'
+                description: 'Download entire playlist if URL is a playlist',
+                type: 'normal'
             },
             {
                 flag: '--no-playlist',
                 title: 'Download Single Video Only',
-                description: 'Download only the video, not the playlist'
+                description: 'Download only the video, not the playlist',
+                type: 'normal'
             },
             {
                 flag: '--embed-thumbnail',
                 title: 'Embed Thumbnail',
-                description: 'Embed thumbnail into video file'
+                description: 'Embed thumbnail into video file',
+                type: 'normal'
             },
             {
                 flag: '--add-metadata',
                 title: 'Add Metadata',
-                description: 'Write metadata to video file'
+                description: 'Write metadata to video file',
+                type: 'normal'
             },
             {
                 flag: '--embed-chapters',
                 title: 'Embed Chapters',
-                description: 'Add chapter markers to video file'
+                description: 'Add chapter markers to video file',
+                type: 'normal'
             },
             {
                 flag: "-f 'bestvideo[height<=720]+bestaudio/best[height<=720]'",
                 title: 'Download 720p Max',
-                description: 'Limit video quality to 720p'
+                description: 'Limit video quality to 720p',
+                type: 'normal'
             },
             {
                 flag: "-f 'bestvideo[height<=480]+bestaudio/best[height<=480]'",
                 title: 'Download 480p Max',
-                description: 'Limit video quality to 480p'
+                description: 'Limit video quality to 480p',
+                type: 'normal'
             },
             {
                 flag: '--cookies-from-browser chrome',
                 title: 'Use Chrome Cookies',
-                description: 'Access videos requiring login via Chrome cookies'
+                description: 'Access videos requiring login via Chrome cookies',
+                type: 'normal'
             },
             {
                 flag: '--geo-bypass',
                 title: 'Bypass Geo Restrictions',
-                description: 'Attempt to bypass geographical restrictions'
+                description: 'Attempt to bypass geographical restrictions',
+                type: 'normal'
             }
         ];
 
@@ -214,7 +339,104 @@
         const copyBtn = document.getElementById('copyBtn');
         const copyNotification = document.getElementById('copyNotification');
 
-        let selectedFlags = new Set();
+        // Modal elements
+        const resolutionModal = document.getElementById('resolutionModal');
+        const sectionModal = document.getElementById('sectionModal');
+        const resolutionBtns = document.querySelectorAll('.resolution-btn');
+        const fpsBtns = document.querySelectorAll('.fps-btn');
+        const sectionsContainer = document.getElementById('sectionsContainer');
+
+        let selectedFlags = new Map();
+        let selectedResolution = null;
+        let selectedFps = null;
+        let sectionCount = 1;
+
+        // Resolution button handlers
+        resolutionBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                resolutionBtns.forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedResolution = this.getAttribute('data-res');
+            });
+        });
+
+        // FPS button handlers
+        fpsBtns.forEach(btn => {
+            btn.addEventListener('click', function() {
+                fpsBtns.forEach(b => b.classList.remove('selected'));
+                this.classList.add('selected');
+                selectedFps = this.getAttribute('data-fps');
+            });
+        });
+
+        // Apply resolution
+        document.getElementById('applyResolution').addEventListener('click', function() {
+            if (selectedResolution) {
+                let flag = `-f 'bestvideo[height=${selectedResolution}]`;
+                if (selectedFps) {
+                    flag += `[fps=${selectedFps}]`;
+                }
+                flag += `+bestaudio/best'`;
+                selectedFlags.set('resolution', flag);
+                resolutionModal.classList.remove('active');
+                renderOptions(searchInput.value);
+            } else {
+                alert('Please select a resolution');
+            }
+        });
+
+        document.getElementById('cancelResolution').addEventListener('click', function() {
+            resolutionModal.classList.remove('active');
+        });
+
+        // Add section
+        document.getElementById('addSection').addEventListener('click', function() {
+            sectionCount++;
+            const sectionDiv = document.createElement('div');
+            sectionDiv.className = 'section-input mb-4 p-4 bg-gray-800 rounded-lg';
+            sectionDiv.innerHTML = `
+                <div class="flex justify-between items-center mb-2">
+                    <label class="block text-green-400 font-semibold">Section ${sectionCount}</label>
+                    <button class="remove-section text-red-400 hover:text-red-300" onclick="this.parentElement.parentElement.remove()">✕</button>
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-gray-400 text-sm mb-1">Start Time</label>
+                        <input type="text" class="section-start w-full bg-black text-white border border-gray-700 rounded px-3 py-2" placeholder="00:00:00" value="00:00:00">
+                    </div>
+                    <div>
+                        <label class="block text-gray-400 text-sm mb-1">End Time</label>
+                        <input type="text" class="section-end w-full bg-black text-white border border-gray-700 rounded px-3 py-2" placeholder="00:00:00" value="00:00:00">
+                    </div>
+                </div>
+            `;
+            sectionsContainer.appendChild(sectionDiv);
+        });
+
+        // Apply sections
+        document.getElementById('applySection').addEventListener('click', function() {
+            const sections = [];
+            document.querySelectorAll('.section-input').forEach(section => {
+                const start = section.querySelector('.section-start').value;
+                const end = section.querySelector('.section-end').value;
+                if (start && end) {
+                    sections.push(`*${start}-${end}`);
+                }
+            });
+
+            if (sections.length > 0) {
+                const flag = `--download-sections '${sections.join(',')}'`;
+                selectedFlags.set('section', flag);
+                sectionModal.classList.remove('active');
+                renderOptions(searchInput.value);
+            } else {
+                alert('Please enter at least one valid section');
+            }
+        });
+
+        document.getElementById('cancelSection').addEventListener('click', function() {
+            sectionModal.classList.remove('active');
+        });
 
         // Render options
         function renderOptions(filter = '') {
@@ -225,7 +447,7 @@
             );
 
             optionsContainer.innerHTML = filteredOptions.map(opt => `
-                <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white ${selectedFlags.has(opt.flag) ? 'selected' : ''}" data-flag="${opt.flag}">
+                <div class="multiselect-option px-4 py-3 rounded cursor-pointer text-white ${selectedFlags.has(opt.flag) ? 'selected' : ''}" data-flag="${opt.flag}" data-type="${opt.type}">
                     <div class="font-medium text-green-400">${opt.title}</div>
                     <div class="text-sm text-gray-400">${opt.description}</div>
                 </div>
@@ -235,12 +457,22 @@
             document.querySelectorAll('.multiselect-option').forEach(option => {
                 option.addEventListener('click', function() {
                     const flag = this.getAttribute('data-flag');
-                    if (selectedFlags.has(flag)) {
-                        selectedFlags.delete(flag);
-                        this.classList.remove('selected');
+                    const type = this.getAttribute('data-type');
+
+                    if (type === 'modal') {
+                        if (flag === 'resolution') {
+                            resolutionModal.classList.add('active');
+                        } else if (flag === 'section') {
+                            sectionModal.classList.add('active');
+                        }
                     } else {
-                        selectedFlags.add(flag);
-                        this.classList.add('selected');
+                        if (selectedFlags.has(flag)) {
+                            selectedFlags.delete(flag);
+                            this.classList.remove('selected');
+                        } else {
+                            selectedFlags.set(flag, flag);
+                            this.classList.add('selected');
+                        }
                     }
                 });
             });
@@ -263,7 +495,7 @@
                 return;
             }
 
-            const flags = Array.from(selectedFlags).join(' ');
+            const flags = Array.from(selectedFlags.values()).join(' ');
             const command = `yt-dlp "${url}"${flags ? ' ' + flags : ''}`;
             
             commandOutput.value = command;
@@ -288,6 +520,19 @@
         videoUrlInput.addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 generateBtn.click();
+            }
+        });
+
+        // Close modals on outside click
+        resolutionModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
+            }
+        });
+
+        sectionModal.addEventListener('click', function(e) {
+            if (e.target === this) {
+                this.classList.remove('active');
             }
         });
     </script>
