@@ -215,119 +215,195 @@
     <script>
         const optionsData = [
             {
-                flag: '-a urls.txt',
-                title: 'Download from File',
-                description: 'Downloading Multiple URLs From a File',
-                type: 'normal'
-            },
-            {
                 flag: 'resolution',
                 title: 'Specify Resolution',
                 description: 'Download Specific Resolution and FPS',
-                type: 'modal'
-            },
-            {
-                flag: "--write-auto-subs --sub-langs 'en' --embed-subs",
-                title: 'Embed Auto Generated Subtitles',
-                description: 'Downloading and Embedding auto generated Subtitles',
-                type: 'normal'
+                type: 'modal',
+                category: 'formats'
             },
             {
                 flag: 'section',
                 title: 'Section Download',
                 description: 'Download specific section(s) of video',
-                type: 'modal'
+                type: 'modal',
+                category: 'download'
             },
             {
-                flag: '--extract-audio --audio-format mp3',
-                title: 'Download Audio Only (MP3)',
-                description: 'Extract and convert to MP3 format',
-                type: 'normal'
+                flag: '-a',
+                title: 'Download URLs From File',
+                description: 'Read a list of URLs from a text file and download them in batch.',
+                type: 'normal',
+                category: 'download'
             },
             {
-                flag: '-f bestvideo+bestaudio',
-                title: 'Download Best Quality Video',
-                description: 'Best video and audio combined',
-                type: 'normal'
+                flag: '-o "%(title)s.%(ext)s"',
+                title: 'Custom Output Template',
+                description: 'Specify output filename and path (e.g. "%(title)s.%(ext)s" or directories based on metadata).',
+                type: 'normal',
+                category: 'output'
             },
             {
-                flag: '-f worst',
-                title: 'Download Worst Quality',
-                description: 'Lowest quality for minimal file size',
-                type: 'normal'
+                flag: '-o "%(title/uploader/playlist)s.%(ext)s"',
+                title: 'Output Organized by Uploader/Playlist',
+                description: 'Organize output into nested folders using metadata fields like %(title)s, %(uploader)s and %(playlist)s.%(ext)s',
+                type: 'normal',
+                category: 'output'
+            },
+            {
+                flag: '-F',
+                title: 'List Available Formats',
+                description: 'List all available video/audio formats for the given URL so you can choose which to download.',
+                type: 'normal',
+                category: 'formats'
+            },
+            {
+                flag: '-f "bestvideo+bestaudio" --merge-output-format mp4',
+                title: 'Download Best Video and Audio (Merged MP4)',
+                description: 'Download the best available video and audio separately and merge them into a single MP4 file.',
+                type: 'normal',
+                category: 'download'
+            },
+            {
+                flag: '-o',
+                title: 'Download Playlist to Folder',
+                description: 'Save all videos from a playlist into a folder named after the playlist using -o "~/Downloads/%(playlist)s/%(title)s.%(ext)s".',
+                type: 'normal',
+                category: 'output'
+            },
+            {
+                flag: '--write-subs --sub-lang "en"',
+                title: 'Download Subtitles',
+                description: 'Download available subtitles for the video (use --sub-lang to specify language codes).',
+                type: 'normal',
+                category: 'subtitles'
+            },
+            {
+                flag: '--write-auto-subs',
+                title: 'Download Auto-generated Subtitles',
+                description: 'Download automatically generated subtitles (auto-captions) when official subtitles are not available.',
+                type: 'normal',
+                category: 'subtitles'
             },
             {
                 flag: '--embed-subs',
                 title: 'Embed Subtitles',
-                description: 'Embed available subtitles into video',
-                type: 'normal'
+                description: 'Embed downloaded subtitles directly into the video file.',
+                type: 'normal',
+                category: 'subtitles'
             },
             {
-                flag: '--write-auto-sub',
-                title: 'Write Auto-Generated Subtitles',
-                description: 'Download auto-generated subtitles',
-                type: 'normal'
+                flag: '--split-chapters',
+                title: 'Split by Chapters',
+                description: 'Split the downloaded video into separate files per chapter if chapter metadata exists.',
+                type: 'normal',
+                category: 'output'
             },
             {
-                flag: '--write-sub',
-                title: 'Write Subtitles',
-                description: 'Download all available subtitles',
-                type: 'normal'
+                flag: '--match-filter',
+                title: 'Match Filter',
+                description: 'Filter which videos to download based on metadata conditions (e.g., skip livestreams or chapters named "Ad").',
+                type: 'normal',
+                category: 'filters'
             },
             {
-                flag: '--yes-playlist',
-                title: 'Download Playlist',
-                description: 'Download entire playlist if URL is a playlist',
-                type: 'normal'
+                flag: '-c',
+                title: 'Continue Partial Download',
+                description: 'Resume an interrupted or partially downloaded file from where it left off.',
+                type: 'normal',
+                category: 'download'
             },
             {
-                flag: '--no-playlist',
-                title: 'Download Single Video Only',
-                description: 'Download only the video, not the playlist',
-                type: 'normal'
+                flag: '--live-from-start',
+                title: 'Download Live from Start',
+                description: 'Download a livestream starting from its beginning, even if it is still ongoing.',
+                type: 'normal',
+                category: 'download'
+            },
+            {
+                flag: '--proxy',
+                title: 'Use Proxy',
+                description: 'Route downloads through a proxy (e.g., socks5://127.0.0.1:9050) to bypass geo-restrictions.',
+                type: 'normal',
+                category: 'network'
+            },
+            {
+                flag: '--skip-download --write-thumbnail',
+                title: 'Download Only Thumbnail',
+                description: 'Skip the video download and save only the video thumbnail image.',
+                type: 'normal',
+                category: 'metadata'
+            },
+            {
+                flag: '--download-archive',
+                title: 'Download Archive',
+                description: 'Record downloaded video IDs in an archive file to avoid re-downloading the same videos.',
+                type: 'normal',
+                category: 'download'
+            },
+            {
+                flag: '--dateafter',
+                title: 'Date Filter (New Content)',
+                description: 'Only download videos uploaded after a specified date (e.g., now-1day) to automate recent content grabs.',
+                type: 'normal',
+                category: 'filters'
+            },
+            {
+                flag: '--extract-audio --audio-format mp3',
+                title: 'Extract Audio and Convert to MP3',
+                description: 'Download only the audio track and convert it to MP3 format.',
+                type: 'normal',
+                category: 'audio'
             },
             {
                 flag: '--embed-thumbnail',
-                title: 'Embed Thumbnail',
-                description: 'Embed thumbnail into video file',
-                type: 'normal'
+                title: 'Embed Thumbnail in Audio',
+                description: 'Embed the video thumbnail as cover art for an extracted audio file.',
+                type: 'normal',
+                category: 'audio'
             },
             {
-                flag: '--add-metadata',
-                title: 'Add Metadata',
-                description: 'Write metadata to video file',
-                type: 'normal'
+                flag: '--cookies-from-browser',
+                title: 'Load Cookies from Browser',
+                description: 'Automatically load cookies directly from a browser (e.g., chrome) to bypass login/CAPTCHA restrictions.',
+                type: 'normal',
+                category: 'authentication'
             },
             {
-                flag: '--embed-chapters',
-                title: 'Embed Chapters',
-                description: 'Add chapter markers to video file',
-                type: 'normal'
+                flag: '--concurrent-fragments --max-downloads',
+                title: 'Parallel Processing / Limit Concurrent Downloads',
+                description: 'Process multiple fragments per download and limit the number of simultaneous video downloads (e.g., --concurrent-fragments 5 --max-downloads 3).',
+                type: 'normal',
+                category: 'performance'
             },
             {
-                flag: "-f 'bestvideo[height<=720]+bestaudio/best[height<=720]'",
-                title: 'Download 720p Max',
-                description: 'Limit video quality to 720p',
-                type: 'normal'
+                flag: '--match-filter "view_count > 1000000"',
+                title: 'Filter by View Count or Rating',
+                description: 'Download only playlist videos that meet metadata thresholds (e.g., view_count > 1000000).',
+                type: 'normal',
+                category: 'filters'
+            },
+                {
+                flag: '--write-description',
+                title: 'Save Video Description',
+                description: "Save the video's description to a separate text file.",
+                type: 'normal',
+                category: 'metadata'
             },
             {
-                flag: "-f 'bestvideo[height<=480]+bestaudio/best[height<=480]'",
-                title: 'Download 480p Max',
-                description: 'Limit video quality to 480p',
-                type: 'normal'
+                flag: '--cookies',
+                title: 'Use Cookies File',
+                description: 'Load cookies from a file (cookies.txt) to access subscription or paid content.',
+                type: 'normal',
+                category: 'authentication'
             },
-            {
-                flag: '--cookies-from-browser chrome',
-                title: 'Use Chrome Cookies',
-                description: 'Access videos requiring login via Chrome cookies',
-                type: 'normal'
-            },
-            {
-                flag: '--geo-bypass',
-                title: 'Bypass Geo Restrictions',
-                description: 'Attempt to bypass geographical restrictions',
-                type: 'normal'
+                {
+                flag: '--concurrent-fragments',
+                title: 'Concurrent Fragments',
+                description: 'Split downloads into multiple concurrent fragments to speed up large file downloads.',
+                type: 'normal',
+                category: 'performance'
             }
+
         ];
 
         const optionsContainer = document.getElementById('optionsContainer');
