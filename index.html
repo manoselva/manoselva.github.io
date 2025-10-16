@@ -67,8 +67,18 @@
         }
 
         .summary-card.india {
-            border-left: 4px solid #ff9933;
+            border-left: none;
+            background: linear-gradient(135deg, 
+                #ff9933 0%, 
+                #ff9933 33%, 
+                #ffffff 33%, 
+                #ffffff 66%, 
+                #138808 66%, 
+                #138808 100%) left / 4px 100% no-repeat,
+                linear-gradient(135deg, #242938 0%, #1e2230 100%);
+            position: relative;
         }
+
 
         .card-header {
             display: flex;
@@ -95,7 +105,11 @@
         }
 
         .india .metal-name {
-            color: #ff9933;
+            background: linear-gradient(90deg, #ff9933 0%, #ffffff 50%, #138808 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
         }
 
         .price-large {
@@ -132,6 +146,37 @@
 
         .change-negative {
             color: #ff4444;
+        }
+
+        .india-price-row {
+            margin: 15px 0;
+        }
+
+        .india-gold {
+            color: #ffd700 !important;
+            text-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+            font-size: 2.8em;
+            font-weight: 700;
+            margin: 15px 0;
+        }
+
+        .india-silver {
+            color: #c0c0c0 !important;
+            text-shadow: 0 0 15px rgba(192, 192, 192, 0.3);
+            font-size: 2.8em;
+            font-weight: 700;
+            margin: 15px 0;
+        }
+
+        .india-divider {
+            height: 2px;
+            background: linear-gradient(to right, 
+                transparent, 
+                rgba(255, 153, 51, 0.4) 20%,
+                rgba(255, 255, 255, 0.4) 50%,
+                rgba(19, 136, 8, 0.4) 80%,
+                transparent);
+            margin: 20px 0;
         }
 
         .chart-section {
@@ -215,7 +260,7 @@
                 min-height: 400px;
             }
 
-            .price-large {
+            .price-large, .india-gold, .india-silver {
                 font-size: 2.2em;
             }
 
@@ -247,7 +292,7 @@
                 padding: 20px;
             }
 
-            .price-large {
+            .price-large, .india-gold, .india-silver {
                 font-size: 2em;
             }
 
@@ -294,15 +339,20 @@
             <div class="summary-card india">
                 <div class="card-header">
                     <span class="metal-icon">🇮🇳</span>
-                    <span class="metal-name">INDIA (INR)</span>
+                    <span class="metal-name">INDIA PRICES</span>
                 </div>
-                <div class="price-label">Gold (per gram)</div>
-                <div class="price-secondary" id="goldPriceINR">₹0.00</div>
-                <div class="price-label" style="margin-top: 15px;">Silver (per gram)</div>
-                <div class="price-secondary" id="silverPriceINR">₹0.00</div>
-                <!-- Added small note about conversion -->
-                <div class="price-label" style="margin-top: 10px; font-size: 0.8em; color: #666;">
-                    Converted from ounce price
+                <div class="india-price-row">
+                    <div class="price-label">
+                        <span style="color: #ffd700;">●</span> Gold (per gram)
+                    </div>
+                    <div class="india-gold" id="goldPriceINR">₹0.00</div>
+                </div>
+                <div class="india-divider"></div>
+                <div class="india-price-row">
+                    <div class="price-label">
+                        <span style="color: #c0c0c0;">●</span> Silver (per gram)
+                    </div>
+                    <div class="india-silver" id="silverPriceINR">₹0.00</div>
                 </div>
             </div>
         </div>
