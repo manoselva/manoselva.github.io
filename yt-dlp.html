@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>yt-dlp Command Generator</title>
+    <link rel="icon" type="image/svg+xml" href="https://raw.githubusercontent.com/yt-dlp/yt-dlp/master/.github/banner.svg">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
@@ -61,6 +62,11 @@
         .resolution-btn.selected, .fps-btn.selected {
             background-color: #06b6d4;
             color: #000;
+        }
+        .yt-dlp-logo {
+            max-width: 200px;
+            height: auto;
+            display: inline-block;
         }
     </style>
 </head>
@@ -131,8 +137,9 @@
         </div>
 
         <!-- Footer -->
-        <div class="text-center mt-8 text-gray-500 text-sm">
-            <p>Built for yt-dlp • Select multiple options by clicking them • Edit command before copying</p>
+        <div class="text-center mt-8 mb-4">
+            <p class="text-gray-500 text-sm mb-3">Site is powered by</p>
+            <img src="https://raw.githubusercontent.com/yt-dlp/yt-dlp/master/.github/banner.svg" alt="yt-dlp" class="yt-dlp-logo mx-auto">
         </div>
     </div>
 
@@ -169,6 +176,9 @@
                 <button id="applyResolution" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
                     Apply
                 </button>
+                <button id="removeResolution" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Remove
+                </button>
                 <button id="cancelResolution" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
                     Cancel
                 </button>
@@ -204,6 +214,9 @@
             <div class="flex gap-3">
                 <button id="applySection" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
                     Apply
+                </button>
+                <button id="removeSection" class="flex-1 bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded-lg transition-colors">
+                    Remove
                 </button>
                 <button id="cancelSection" class="flex-1 bg-gray-700 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg transition-colors">
                     Cancel
@@ -382,7 +395,7 @@
                 type: 'normal',
                 category: 'filters'
             },
-                {
+            {
                 flag: '--write-description',
                 title: 'Save Video Description',
                 description: "Save the video's description to a separate text file.",
@@ -396,14 +409,13 @@
                 type: 'normal',
                 category: 'authentication'
             },
-                {
+            {
                 flag: '--concurrent-fragments',
                 title: 'Concurrent Fragments',
                 description: 'Split downloads into multiple concurrent fragments to speed up large file downloads.',
                 type: 'normal',
                 category: 'performance'
             }
-
         ];
 
         const optionsContainer = document.getElementById('optionsContainer');
@@ -461,6 +473,17 @@
             }
         });
 
+        // Remove resolution
+        document.getElementById('removeResolution').addEventListener('click', function() {
+            selectedFlags.delete('resolution');
+            selectedResolution = null;
+            selectedFps = null;
+            resolutionBtns.forEach(b => b.classList.remove('selected'));
+            fpsBtns.forEach(b => b.classList.remove('selected'));
+            resolutionModal.classList.remove('active');
+            renderOptions(searchInput.value);
+        });
+
         document.getElementById('cancelResolution').addEventListener('click', function() {
             resolutionModal.classList.remove('active');
         });
@@ -508,6 +531,30 @@
             } else {
                 alert('Please enter at least one valid section');
             }
+        });
+
+        // Remove sections
+        document.getElementById('removeSection').addEventListener('click', function() {
+            selectedFlags.delete('section');
+            // Reset sections to default
+            sectionsContainer.innerHTML = `
+                <div class="section-input mb-4 p-4 bg-gray-800 rounded-lg">
+                    <label class="block text-green-400 font-semibold mb-2">Section 1</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-1">Start Time</label>
+                            <input type="text" class="section-start w-full bg-black text-white border border-gray-700 rounded px-3 py-2" placeholder="00:00:00" value="00:00:00">
+                        </div>
+                        <div>
+                            <label class="block text-gray-400 text-sm mb-1">End Time</label>
+                            <input type="text" class="section-end w-full bg-black text-white border border-gray-700 rounded px-3 py-2" placeholder="00:00:00" value="00:00:00">
+                        </div>
+                    </div>
+                </div>
+            `;
+            sectionCount = 1;
+            sectionModal.classList.remove('active');
+            renderOptions(searchInput.value);
         });
 
         document.getElementById('cancelSection').addEventListener('click', function() {
