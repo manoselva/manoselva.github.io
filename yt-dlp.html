@@ -270,9 +270,16 @@
                 category: 'formats'
             },
             {
-                flag: '-f "bestvideo+bestaudio" --merge-output-format mp4',
-                title: 'Download Best Video and Audio (Merged MP4)',
+                flag: '--merge-output-format mp4',
+                title: 'Merge MP4',
                 description: 'Download the best available video and audio separately and merge them into a single MP4 file.',
+                type: 'normal',
+                category: 'download'
+            },
+            {
+                flag: "-f 'bestvideo+bestaudio'",
+                title: 'Download Best Video and Audio ',
+                description: 'Download the best available video and audio',
                 type: 'normal',
                 category: 'download'
             },
