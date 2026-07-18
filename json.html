@@ -1,0 +1,3605 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Claude Code — Conversation Viewer</title>
+<style>
+/* === Design Tokens === */
+:root {
+  --bg-primary: #fafafa;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f3f4f6;
+  --bg-hover: #e5e7eb;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
+  --border: #e5e7eb;
+  --border-light: #f3f4f6;
+  --accent: #2563eb;
+  --accent-hover: #1d4ed8;
+  --accent-light: #dbeafe;
+  --accent-text: #ffffff;
+
+  --user-bubble: #2563eb;
+  --user-text: #ffffff;
+  --claude-bubble: #f3f4f6;
+  --claude-text: #111827;
+  --thinking-bg: #fff7ed;
+  --thinking-border: #fdba74;
+  --tool-bg: #f0fdf4;
+  --tool-border: #86efac;
+  --tool-result-bg: #f8fafc;
+  --tool-result-border: #cbd5e1;
+  --error-bg: #fef2f2;
+  --error-border: #fca5a5;
+  --error-text: #991b1b;
+
+  --code-bg: #1e293b;
+  --code-text: #e2e8f0;
+  --inline-code-bg: #f1f5f9;
+  --inline-code-text: #e11d48;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.05);
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+
+  --radius-sm: 6px;
+  --radius: 10px;
+  --radius-lg: 16px;
+  --radius-xl: 20px;
+
+  --font-sans: 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --font-mono: 'Cascadia Code', 'Fira Code', 'JetBrains Mono', 'Consolas', monospace;
+
+  --header-h: 52px;
+  --session-bar-h: 32px;
+
+  --transition: 0.15s ease;
+
+  --sidebar-bg: #f1f2f4;
+  --sidebar-scrollbar-thumb: #d1d5db;
+}
+
+[data-theme="dark"] {
+  --bg-primary: #0f172a;
+  --bg-secondary: #1e293b;
+  --bg-tertiary: #334155;
+  --bg-hover: #475569;
+  --text-primary: #f1f5f9;
+  --text-secondary: #94a3b8;
+  --text-tertiary: #64748b;
+  --border: #334155;
+  --border-light: #1e293b;
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --accent-light: #1e3a5f;
+  --accent-text: #ffffff;
+
+  --user-bubble: #3b82f6;
+  --user-text: #ffffff;
+  --claude-bubble: #1e293b;
+  --claude-text: #e2e8f0;
+  --thinking-bg: #292524;
+  --thinking-border: #78716c;
+  --tool-bg: #0f2b1a;
+  --tool-border: #166534;
+  --tool-result-bg: #1e293b;
+  --tool-result-border: #475569;
+  --error-bg: #450a0a;
+  --error-border: #7f1d1d;
+  --error-text: #fca5a5;
+
+  --code-bg: #0f172a;
+  --code-text: #e2e8f0;
+  --inline-code-bg: #334155;
+  --inline-code-text: #fb7185;
+
+  --shadow-sm: 0 1px 2px rgba(0,0,0,0.3);
+  --shadow: 0 1px 3px rgba(0,0,0,0.4);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.5);
+
+  --sidebar-bg: #0a1120;
+  --sidebar-scrollbar-thumb: #334155;
+}
+
+/* === Reset & Base === */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html, body {
+  height: 100%;
+  font-family: var(--font-sans);
+  font-size: 15px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: var(--accent); text-decoration: none; }
+a:hover { text-decoration: underline; }
+button { font-family: inherit; font-size: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+code { font-family: var(--font-mono); font-size: 0.88em; }
+input { font-family: inherit; font-size: inherit; }
+
+/* === App Layout === */
+.app-header {
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  gap: 12px;
+  position: relative;
+  z-index: 100;
+}
+
+.header-left, .header-center, .header-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.header-left { min-width: 180px; }
+.header-right { min-width: 180px; justify-content: flex-end; }
+.header-center { flex: 1; justify-content: center; max-width: 520px; }
+
+.app-logo { font-size: 22px; line-height: 1; }
+.app-name {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  letter-spacing: -0.01em;
+}
+
+/* === Buttons === */
+.header-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  transition: all var(--transition);
+  font-size: 13px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.header-btn:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.header-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.header-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 24px;
+  background: var(--accent);
+  color: var(--accent-text);
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 14px;
+  transition: all var(--transition);
+  box-shadow: var(--shadow-sm);
+}
+.btn-primary:hover { background: var(--accent-hover); box-shadow: var(--shadow); }
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 20px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-weight: 600;
+  font-size: 13px;
+  transition: all var(--transition);
+}
+.btn-secondary:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+.btn-label { display: inline; }
+
+/* === Export Dropdown === */
+.export-dropdown {
+  position: relative;
+}
+.dropdown-menu {
+  display: none;
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 4px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  min-width: 210px;
+  z-index: 200;
+  overflow: hidden;
+}
+.dropdown-menu.open { display: block; }
+.dropdown-menu button {
+  display: block;
+  width: 100%;
+  padding: 10px 16px;
+  text-align: left;
+  font-size: 13px;
+  color: var(--text-primary);
+  transition: background var(--transition);
+}
+.dropdown-menu button:hover { background: var(--bg-tertiary); }
+
+/* === Search === */
+.search-box {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-tertiary);
+  border: 1px solid transparent;
+  border-radius: var(--radius);
+  padding: 0 8px;
+  width: 100%;
+  max-width: 480px;
+  transition: all var(--transition);
+}
+.search-box:focus-within {
+  border-color: var(--accent);
+  background: var(--bg-secondary);
+  box-shadow: 0 0 0 2px var(--accent-light);
+}
+.search-icon {
+  width: 16px;
+  height: 16px;
+  color: var(--text-tertiary);
+  flex-shrink: 0;
+}
+.search-input {
+  flex: 1;
+  border: none;
+  background: none;
+  padding: 7px 4px;
+  color: var(--text-primary);
+  outline: none;
+  font-size: 13px;
+  min-width: 0;
+}
+.search-input::placeholder { color: var(--text-tertiary); }
+.search-meta {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+  min-width: 28px;
+  text-align: center;
+}
+.search-nav-btn, .search-clear-btn {
+  padding: 4px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1;
+  transition: all var(--transition);
+  flex-shrink: 0;
+}
+.search-nav-btn:hover:not(:disabled), .search-clear-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+.search-nav-btn:disabled { opacity: 0.3; cursor: default; }
+
+/* === Session Bar === */
+.session-bar {
+  height: var(--session-bar-h);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 20px;
+  background: var(--bg-secondary);
+  border-bottom: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.session-model {
+  font-weight: 600;
+  color: var(--accent);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.session-stats { color: var(--text-tertiary); }
+.session-file {
+  margin-left: auto;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+/* === Main Area === */
+.app-main {
+  height: calc(100vh - var(--header-h));
+  overflow: hidden;
+  position: relative;
+  display: flex;
+  align-items: stretch;
+  transition: background var(--transition);
+}
+.app-main.drag-over {
+  background: var(--accent-light);
+}
+.app-main.drag-over::after {
+  content: 'Drop JSONL file to open';
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--accent);
+  background: rgba(37, 99, 235, 0.08);
+  z-index: 50;
+  pointer-events: none;
+}
+.session-bar + .app-main {
+  height: calc(100vh - var(--header-h) - var(--session-bar-h));
+}
+
+.main-content {
+  flex: 1 1 auto;
+  min-width: 0;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+/* === Session Sidebar === */
+.session-sidebar {
+  flex: 0 0 280px;
+  width: 280px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--sidebar-bg);
+  border-right: 1px solid var(--border);
+  overflow: hidden;
+  transition: flex-basis var(--transition), width var(--transition);
+}
+.session-sidebar.collapsed {
+  flex-basis: 40px;
+  width: 40px;
+}
+.sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.sidebar-title {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+.session-sidebar.collapsed .sidebar-title { display: none; }
+.sidebar-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: all var(--transition);
+}
+.sidebar-toggle:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+.sidebar-toggle svg { width: 14px; height: 14px; transition: transform var(--transition); }
+.session-sidebar.collapsed .sidebar-toggle svg { transform: rotate(180deg); }
+.sidebar-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scrollbar-width: thin;
+  scrollbar-color: var(--sidebar-scrollbar-thumb) transparent;
+}
+.session-sidebar.collapsed .sidebar-list { display: none; }
+
+/* Thin, dark-styled scrollbar for the sidebar list specifically
+   (overrides the generic ::-webkit-scrollbar rule further down). */
+.sidebar-list::-webkit-scrollbar { width: 6px; }
+.sidebar-list::-webkit-scrollbar-track { background: transparent; }
+.sidebar-list::-webkit-scrollbar-thumb {
+  background: var(--sidebar-scrollbar-thumb);
+  border-radius: 3px;
+}
+.sidebar-list::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+/* --- Project group --- */
+.sidebar-group { border-bottom: 1px solid var(--border-light); }
+.sidebar-group:last-child { border-bottom: none; }
+
+.sidebar-group-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 9px 12px;
+  background: var(--bg-tertiary);
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  text-align: left;
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  transition: background var(--transition);
+}
+.sidebar-group-header:hover { background: var(--bg-hover); }
+
+/* .sidebar-group-chevron also carries .thinking-chevron (reused from the
+   app's existing collapsible-header pattern), which supplies base size +
+   the rotate transition; this rule only adds sidebar-specific color/layout
+   and the open-state rotation (higher specificity than .thinking-chevron
+   so it always wins regardless of rule order). */
+.sidebar-group-chevron {
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+.sidebar-group.open .sidebar-group-chevron { transform: rotate(90deg); }
+
+.sidebar-group-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--text-tertiary);
+}
+
+.sidebar-group-name {
+  flex: 1;
+  min-width: 0;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sidebar-group-badge {
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--text-tertiary);
+  background: var(--sidebar-bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 7px;
+  line-height: 1.5;
+}
+
+/* Collapsible body — grid-template-rows 0fr/1fr animates height without
+   knowing the content's real height, and stays glitch-free. */
+.sidebar-group-sessions {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.22s ease;
+}
+.sidebar-group.open .sidebar-group-sessions { grid-template-rows: 1fr; }
+.sidebar-group-sessions-inner {
+  overflow: hidden;
+  min-height: 0;
+  padding: 4px 0 6px 12px;
+  margin-left: 13px;
+  border-left: 1px solid var(--border);
+}
+
+.sidebar-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 10px;
+  margin: 0 6px 0 0;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  border-left: 3px solid transparent;
+  transition: background var(--transition), border-color var(--transition);
+}
+.sidebar-item:hover { background: var(--bg-hover); }
+.sidebar-item.active {
+  background: var(--accent-light);
+  border-left-color: var(--accent);
+}
+.sidebar-item-title {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  font-size: 13px;
+  line-height: 1.35;
+  color: var(--text-primary);
+}
+.sidebar-item.active .sidebar-item-title { color: var(--accent); font-weight: 600; }
+.sidebar-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.sidebar-empty-hint {
+  padding: 16px 12px;
+  font-size: 12px;
+  color: var(--text-tertiary);
+  line-height: 1.5;
+}
+
+/* === Empty State === */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+  padding: 40px;
+  text-align: center;
+}
+.empty-state h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.empty-state p {
+  color: var(--text-secondary);
+  max-width: 400px;
+  line-height: 1.6;
+}
+.empty-icon {
+  width: 80px;
+  height: 80px;
+  color: var(--text-tertiary);
+  margin-bottom: 8px;
+}
+.empty-icon svg { width: 100%; height: 100%; }
+.empty-hint {
+  font-size: 12px !important;
+  color: var(--text-tertiary) !important;
+}
+.empty-hint code {
+  background: var(--inline-code-bg);
+  color: var(--text-secondary);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+/* === Loading === */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 16px;
+  color: var(--text-secondary);
+}
+.spinner {
+  width: 36px;
+  height: 36px;
+  border: 3px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* === Chat Container === */
+.chat-container {
+  height: 100%;
+  overflow-y: auto;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+.chat-messages {
+  max-width: 820px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* === Message Turns === */
+.turn {
+  display: flex;
+  flex-direction: column;
+  padding: 12px 0;
+  position: relative;
+  animation: fadeIn 0.2s ease;
+}
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+.turn-user {
+  align-items: flex-end;
+}
+.turn-assistant {
+  align-items: flex-start;
+}
+.turn-system {
+  align-items: center;
+}
+
+/* === Message Bubble === */
+.msg-bubble {
+  max-width: 85%;
+  padding: 12px 16px;
+  border-radius: var(--radius-lg);
+  line-height: 1.65;
+  word-wrap: break-word;
+  position: relative;
+}
+.turn-user .msg-bubble {
+  background: var(--user-bubble);
+  color: var(--user-text);
+  border-bottom-right-radius: var(--radius-sm);
+}
+.turn-assistant .msg-bubble {
+  background: var(--claude-bubble);
+  color: var(--claude-text);
+  border-bottom-left-radius: var(--radius-sm);
+}
+.turn-system .msg-bubble {
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-style: italic;
+  padding: 6px 14px;
+  border-radius: var(--radius);
+  max-width: 90%;
+}
+
+/* === Message Meta === */
+.msg-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-tertiary);
+  padding: 2px 16px 6px;
+}
+.msg-role {
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-size: 10px;
+}
+.msg-time {
+  font-family: var(--font-mono);
+  font-size: 10px;
+}
+.msg-model {
+  font-size: 10px;
+  color: var(--accent);
+  font-weight: 500;
+}
+.turn-user .msg-meta { flex-direction: row-reverse; }
+
+/* === Markdown Content Styling === */
+.msg-content { min-width: 0; }
+.msg-content p { margin: 0 0 8px; }
+.msg-content p:last-child { margin-bottom: 0; }
+.msg-content ul, .msg-content ol { margin: 6px 0; padding-left: 20px; }
+.msg-content li { margin: 2px 0; }
+.msg-content h1 { font-size: 1.4em; margin: 16px 0 8px; font-weight: 700; }
+.msg-content h2 { font-size: 1.2em; margin: 14px 0 6px; font-weight: 700; }
+.msg-content h3 { font-size: 1.05em; margin: 12px 0 4px; font-weight: 700; }
+.msg-content h4, .msg-content h5, .msg-content h6 { font-size: 1em; margin: 10px 0 4px; font-weight: 600; }
+.msg-content blockquote {
+  border-left: 3px solid var(--accent);
+  padding: 4px 0 4px 12px;
+  margin: 8px 0;
+  color: var(--text-secondary);
+}
+.msg-content blockquote p:last-child { margin-bottom: 0; }
+.msg-content hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+.msg-content table { border-collapse: collapse; width: 100%; margin: 8px 0; font-size: 0.92em; }
+.msg-content th { background: var(--bg-tertiary); font-weight: 600; text-align: left; padding: 8px 12px; border: 1px solid var(--border); }
+.msg-content td { padding: 6px 12px; border: 1px solid var(--border); }
+.msg-content img { max-width: 100%; border-radius: var(--radius-sm); margin: 8px 0; }
+
+/* Inline code */
+.msg-content code:not(pre code) {
+  background: var(--inline-code-bg);
+  color: var(--inline-code-text);
+  padding: 2px 6px;
+  border-radius: 3px;
+  font-size: 0.9em;
+}
+
+/* Code blocks */
+.code-block-wrapper {
+  margin: 10px 0;
+  border-radius: var(--radius);
+  overflow: hidden;
+  border: 1px solid var(--border);
+  background: var(--code-bg);
+}
+.code-block-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 12px;
+  background: rgba(0,0,0,0.2);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-family: var(--font-mono);
+}
+.code-block-lang { text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; }
+.code-block-copy {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 3px;
+  color: var(--text-tertiary);
+  transition: all var(--transition);
+  font-family: var(--font-sans);
+}
+.code-block-copy:hover { background: rgba(255,255,255,0.1); color: #fff; }
+.code-block-wrapper pre {
+  margin: 0;
+  padding: 14px;
+  overflow-x: auto;
+  font-size: 0.85em;
+  line-height: 1.55;
+}
+.code-block-wrapper pre code {
+  background: none !important;
+  color: var(--code-text);
+  padding: 0;
+  font-size: inherit;
+}
+
+/* === Thinking Blocks === */
+.thinking-block {
+  margin: 8px 0;
+  border: 1px solid var(--thinking-border);
+  border-radius: var(--radius);
+  background: var(--thinking-bg);
+  overflow: hidden;
+}
+.thinking-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.thinking-header:hover { background: rgba(0,0,0,0.04); }
+[data-theme="dark"] .thinking-header:hover { background: rgba(255,255,255,0.04); }
+.thinking-chevron {
+  width: 12px;
+  height: 12px;
+  transition: transform var(--transition);
+}
+.thinking-block.open .thinking-chevron { transform: rotate(90deg); }
+.thinking-body {
+  display: none;
+  padding: 0 12px 12px;
+  font-size: 0.9em;
+  color: var(--text-secondary);
+  max-height: 300px;
+  overflow-y: auto;
+  border-top: 1px solid var(--thinking-border);
+}
+.thinking-block.open .thinking-body { display: block; }
+.thinking-body p { margin: 0 0 6px; }
+
+/* === Tool Call Blocks === */
+.tool-call-block {
+  margin: 8px 0;
+  border: 1px solid var(--tool-border);
+  border-radius: var(--radius);
+  background: var(--tool-bg);
+  overflow: hidden;
+}
+.tool-call-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.tool-call-header:hover { background: rgba(0,0,0,0.04); }
+[data-theme="dark"] .tool-call-header:hover { background: rgba(255,255,255,0.04); }
+.tool-call-icon { font-size: 14px; }
+.tool-call-name { font-family: var(--font-mono); color: var(--accent); }
+.tool-call-body {
+  display: none;
+  border-top: 1px solid var(--tool-border);
+}
+.tool-call-block.open .tool-call-body { display: block; }
+.tool-call-section {
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--tool-border);
+}
+.tool-call-section:last-child { border-bottom: none; }
+.tool-call-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-tertiary);
+  margin-bottom: 4px;
+}
+.tool-call-section pre {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-primary);
+  max-height: 240px;
+  overflow-y: auto;
+}
+.tool-call-block .thinking-chevron {
+  width: 12px;
+  height: 12px;
+  transition: transform var(--transition);
+}
+.tool-call-block.open .thinking-chevron { transform: rotate(90deg); }
+
+/* === Tool Result Blocks === */
+.tool-result-block {
+  margin: 4px 0 8px;
+  border: 1px solid var(--tool-result-border);
+  border-radius: var(--radius);
+  background: var(--tool-result-bg);
+  overflow: hidden;
+}
+.tool-result-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 6px 12px;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  cursor: pointer;
+}
+.tool-result-header:hover { background: rgba(0,0,0,0.03); }
+[data-theme="dark"] .tool-result-header:hover { background: rgba(255,255,255,0.03); }
+.tool-result-content {
+  display: none;
+  padding: 0 12px 8px;
+  border-top: 1px solid var(--tool-result-border);
+}
+.tool-result-block.open .tool-result-content { display: block; }
+.tool-result-content pre {
+  margin: 8px 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.8em;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+/* === Search Highlight === */
+.search-highlight {
+  background: #fbbf24;
+  color: #000;
+  padding: 0 2px;
+  border-radius: 2px;
+}
+.search-highlight.current {
+  background: #f59e0b;
+  outline: 2px solid #d97706;
+  outline-offset: 0px;
+}
+
+/* === Toast === */
+.toast-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.toast {
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  padding: 12px 20px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-lg);
+  border: 1px solid var(--border);
+  font-size: 13px;
+  font-weight: 500;
+  animation: toastIn 0.25s ease, toastOut 0.25s ease 2.5s forwards;
+  max-width: 360px;
+}
+.toast.error {
+  border-color: var(--error-border);
+  background: var(--error-bg);
+  color: var(--error-text);
+}
+@keyframes toastIn { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes toastOut { from { opacity: 1; } to { opacity: 0; } }
+
+/* === Scrollbar === */
+::-webkit-scrollbar { width: 8px; height: 8px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+::-webkit-scrollbar-thumb:hover { background: var(--text-tertiary); }
+
+/* === Export Filter Modal === */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  animation: fadeIn 0.15s ease;
+}
+.modal-dialog {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 24px;
+  min-width: 340px;
+  max-width: 420px;
+  box-shadow: var(--shadow-lg);
+}
+.modal-header {
+  margin-bottom: 4px;
+}
+.modal-header h3 {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+.modal-desc {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin-bottom: 16px;
+}
+.filter-presets {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.btn-preset {
+  flex: 1;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  transition: all var(--transition);
+}
+.btn-preset:hover { background: var(--bg-hover); color: var(--text-primary); }
+
+.filter-options {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+.filter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: background var(--transition);
+}
+.filter-row:hover { background: var(--bg-tertiary); }
+.filter-row input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.filter-label { flex: 1; }
+.filter-hint {
+  font-size: 11px;
+  color: var(--text-tertiary);
+}
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+.btn-cancel {
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
+  transition: all var(--transition);
+}
+.btn-cancel:hover { background: var(--bg-hover); }
+.btn-export-modal {
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  background: var(--accent);
+  color: var(--accent-text);
+  transition: all var(--transition);
+}
+.btn-export-modal:hover { background: var(--accent-hover); }
+
+/* === Responsive === */
+@media (max-width: 768px) {
+  .header-left { min-width: auto; }
+  .header-right { min-width: auto; }
+  .btn-label { display: none; }
+  .header-center { max-width: 300px; }
+  .app-name { display: none; }
+  .msg-bubble { max-width: 92%; }
+  .chat-messages { padding: 16px 12px 48px; }
+  .session-sidebar { flex-basis: 220px; width: 220px; }
+}
+
+@media (max-width: 480px) {
+  .header-center { display: none; }
+  .session-bar { font-size: 10px; gap: 8px; }
+  .msg-bubble { max-width: 95%; padding: 10px 14px; font-size: 14px; }
+}
+
+</style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css" id="hljs-theme">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><text y='28' font-size='28'>📜</text></svg>">
+</head>
+<body>
+
+<!-- Header -->
+<header class="app-header">
+  <div class="header-left">
+    <span class="app-logo">📜</span>
+    <span class="app-name">Claude Code Viewer</span>
+  </div>
+
+  <div class="header-center">
+    <div class="search-box" id="searchContainer">
+      <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" id="searchInput" class="search-input" placeholder="Search conversation…" disabled>
+      <span class="search-meta" id="searchMeta"></span>
+      <button class="search-nav-btn" id="searchPrev" title="Previous match (Shift+Enter)" disabled>↑</button>
+      <button class="search-nav-btn" id="searchNext" title="Next match (Enter)" disabled>↓</button>
+      <button class="search-clear-btn" id="searchClear" title="Clear search" style="display:none">✕</button>
+    </div>
+  </div>
+
+  <div class="header-right">
+    <button class="header-btn" id="btnUpload" title="Open JSONL file">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+      <span class="btn-label">Open</span>
+    </button>
+
+    <button class="header-btn" id="btnOpenFolder" title="Open a folder of sessions (Chrome/Edge only)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>
+      <span class="btn-label">Open Folder</span>
+    </button>
+
+    <div class="export-dropdown">
+      <button class="header-btn" id="btnExport" title="Export conversation" disabled>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span class="btn-label">Export</span>
+      </button>
+      <div class="dropdown-menu" id="exportMenu">
+        <button data-format="md">Export as Markdown (.md)</button>
+        <button data-format="pdf">Export as PDF (.pdf)</button>
+        <button data-format="dxt">Export as DXT (.dxt)</button>
+      </div>
+    </div>
+
+    <button class="header-btn" id="btnTheme" title="Toggle dark/light mode">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="themeIconLight"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="themeIconDark" style="display:none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+    </button>
+  </div>
+</header>
+
+<!-- Session info bar -->
+<div class="session-bar" id="sessionBar" style="display:none">
+  <span class="session-model" id="sessionModel"></span>
+  <span class="session-stats" id="sessionStats"></span>
+  <span class="session-file" id="sessionFile"></span>
+</div>
+
+<!-- Main content -->
+<main class="app-main" id="appMain">
+  <!-- Session sidebar (shown once a folder is opened) -->
+  <aside class="session-sidebar" id="sessionSidebar" style="display:none">
+    <div class="sidebar-header">
+      <span class="sidebar-title">Sessions</span>
+      <button class="sidebar-toggle" id="btnSidebarToggle" title="Collapse sidebar">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+    </div>
+    <div class="sidebar-list" id="sidebarList"></div>
+  </aside>
+
+  <div class="main-content" id="mainContent">
+    <!-- Empty state -->
+    <div class="empty-state" id="emptyState">
+      <div class="empty-icon">
+        <svg viewBox="0 0 64 64" fill="none" stroke="currentColor" stroke-width="1.5">
+          <path d="M32 8v36M20 36l12 12 12-12"/>
+          <path d="M16 16h32a4 4 0 014 4v24a4 4 0 01-4 4H16a4 4 0 01-4-4V20a4 4 0 014-4z"/>
+        </svg>
+      </div>
+      <h2>Open a Claude Code conversation</h2>
+      <p>Drag and drop a <code>.jsonl</code> file here, or click to browse.</p>
+      <button class="btn-primary" id="btnUploadEmpty">Choose File</button>
+      <button class="btn-secondary" id="btnOpenFolderEmpty">Open the whole projects folder</button>
+      <p class="empty-hint">Your conversation files are in <code>~/.claude/projects/</code></p>
+    </div>
+
+    <!-- Chat container -->
+    <div class="chat-container" id="chatContainer" style="display:none">
+      <div class="chat-messages" id="chatMessages"></div>
+    </div>
+
+    <!-- Loading state -->
+    <div class="loading-state" id="loadingState" style="display:none">
+      <div class="spinner"></div>
+      <p>Parsing conversation…</p>
+    </div>
+  </div>
+</main>
+
+<!-- Hidden file input -->
+<input type="file" id="fileInput" accept=".jsonl" style="display:none">
+
+<!-- Toast container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Export filter modal -->
+<div class="modal-overlay" id="exportFilterModal" style="display:none">
+  <div class="modal-dialog">
+    <div class="modal-header">
+      <h3>Export as <span id="exportFormatLabel">Markdown</span></h3>
+    </div>
+    <p class="modal-desc">Choose what to include in the export:</p>
+    <div class="filter-presets">
+      <button class="btn-preset" id="btnPresetAll" type="button">Everything</button>
+      <button class="btn-preset" id="btnPresetConvo" type="button">Conversation only</button>
+    </div>
+    <div class="filter-options">
+      <label class="filter-row">
+        <input type="checkbox" data-filter="text" checked>
+        <span class="filter-label">💬 Text messages</span>
+      </label>
+      <label class="filter-row">
+        <input type="checkbox" data-filter="thinking" checked>
+        <span class="filter-label">💭 Thinking blocks</span>
+      </label>
+      <label class="filter-row">
+        <input type="checkbox" data-filter="read" checked>
+        <span class="filter-label">📖 Read</span>
+      </label>
+      <label class="filter-row">
+        <input type="checkbox" data-filter="write" checked>
+        <span class="filter-label">✏️ Write</span>
+      </label>
+      <label class="filter-row">
+        <input type="checkbox" data-filter="edit" checked>
+        <span class="filter-label">📝 Edit</span>
+      </label>
+      <label class="filter-row">
+        <input type="checkbox" data-filter="commands" checked>
+        <span class="filter-label">💻 Commands <span class="filter-hint">(Bash, PowerShell)</span></span>
+      </label>
+      <label class="filter-row">
+        <input type="checkbox" data-filter="otherTools" checked>
+        <span class="filter-label">🔧 Other tools <span class="filter-hint">(Glob, Grep, etc.)</span></span>
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btnExportCancel">Cancel</button>
+      <button class="btn-export-modal" id="btnExportConfirm">Export</button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts --><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/highlight.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/15.0.12/marked.min.js"></script>
+<script>
+/**
+ * Theme manager — dark/light mode toggle with persistence.
+ * Attaches to window.JSONLViewer.Theme
+ */
+(function () {
+  const STORAGE_KEY = 'jsonl-viewer-theme';
+
+  const HIGHLIGHT_THEMES = {
+    dark: 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github-dark.min.css',
+    light: 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/github.min.css',
+  };
+
+  const hljsLink = document.getElementById('hljs-theme');
+  const iconLight = document.getElementById('themeIconLight');
+  const iconDark = document.getElementById('themeIconDark');
+
+  function get() {
+    return document.documentElement.getAttribute('data-theme') || 'dark';
+  }
+
+  function set(theme) {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem(STORAGE_KEY, theme);
+
+    // Swap highlight.js theme
+    if (hljsLink) {
+      hljsLink.href = HIGHLIGHT_THEMES[theme] || HIGHLIGHT_THEMES.dark;
+    }
+
+    // Swap icons
+    if (iconLight && iconDark) {
+      iconLight.style.display = theme === 'dark' ? 'none' : '';
+      iconDark.style.display = theme === 'dark' ? '' : 'none';
+    }
+  }
+
+  function toggle() {
+    const current = get();
+    set(current === 'dark' ? 'light' : 'dark');
+  }
+
+  function init() {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved === 'light' || saved === 'dark') {
+      set(saved);
+    } else {
+      // Default to dark — matches terminal aesthetic
+      set('dark');
+    }
+
+    // Wire toggle button if present
+    const btn = document.getElementById('btnTheme');
+    if (btn) {
+      btn.addEventListener('click', toggle);
+    }
+  }
+
+  window.JSONLViewer = window.JSONLViewer || {};
+  window.JSONLViewer.Theme = { get, set, toggle, init };
+})();
+
+</script>
+<script>
+/**
+ * JSONL Parser — reads Claude Code conversation files into structured turns.
+ * Attaches to window.JSONLViewer.Parser
+ */
+(function () {
+  'use strict';
+
+  // ── Event types to skip entirely ──────────────────────────────────
+  const SKIP_TYPES = new Set([
+    'mode',
+    'permission-mode',
+    'file-history-snapshot',
+    'ai-title',
+    'last-prompt',
+  ]);
+
+  /**
+   * Parse raw JSONL text into raw event objects (one per line).
+   */
+  function parseJSONL(text) {
+    var lines = text.split(/\r?\n/);
+    var events = [];
+    for (var i = 0; i < lines.length; i++) {
+      var line = lines[i].trim();
+      if (!line) continue;
+      try {
+        var obj = JSON.parse(line);
+        events.push(obj);
+      } catch (e) {
+        console.warn('JSONL parse error on line', i + 1, e.message);
+      }
+    }
+    return events;
+  }
+
+  /**
+   * Check whether an event should be skipped entirely.
+   * We're deliberately lenient — only skip infrastructure noise, not conversation content.
+   */
+  function isSkippable(ev) {
+    // Skip known infrastructure types
+    if (SKIP_TYPES.has(ev.type)) return true;
+
+    // Skip meta notifications (task-notification, local-command-caveat, etc.)
+    if (ev.isMeta) return true;
+
+    // Skip tool/skill/agent listing attachments (noise)
+    if (ev.type === 'attachment') {
+      var att = ev.attachment;
+      if (!att) return true;
+      // Keep queued_command attachments — they contain real user prompts
+      if (att.type === 'queued_command') return false;
+      // Skip all other attachment types (delta listings, instructions, plan_mode, date_change)
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Check if a user-type event is a "real" human message.
+   */
+  function isRealUserMessage(ev) {
+    if (ev.type !== 'user') return false;
+    if (!ev.message || ev.message.role !== 'user') return false;
+
+    var content = ev.message.content;
+
+    // String content = real user message
+    if (typeof content === 'string' && content.trim().length > 0) {
+      // Skip local-command caveats (command echo wrappers)
+      if (content.indexOf('<local-command-caveat>') !== -1) return false;
+      // Skip task notification injection
+      if (content.indexOf('[SYSTEM NOTIFICATION') !== -1) return false;
+      return true;
+    }
+
+    // Array content: real user if it has non-tool_result blocks
+    if (Array.isArray(content)) {
+      return !content.every(function (c) { return c.type === 'tool_result'; });
+    }
+
+    return false;
+  }
+
+  /**
+   * Check if a user-type event carries a tool result.
+   */
+  function isToolResult(ev) {
+    if (ev.type !== 'user') return false;
+    if (!ev.message || !Array.isArray(ev.message.content)) return false;
+    return ev.message.content.some(function (c) { return c.type === 'tool_result'; });
+  }
+
+  /**
+   * Check if an event is an assistant message with displayable content.
+   */
+  function isAssistantMessage(ev) {
+    if (ev.type !== 'assistant') return false;
+    if (!ev.message || ev.message.role !== 'assistant') return false;
+    if (!Array.isArray(ev.message.content)) return false;
+    return ev.message.content.some(function (c) {
+      return c.type === 'text' || c.type === 'tool_use' || c.type === 'thinking';
+    });
+  }
+
+  /**
+   * Extract user prompts from queued_command attachments.
+   * These are mid-turn user messages injected as attachments.
+   */
+  function extractQueuedCommands(events) {
+    var commands = [];
+    for (var i = 0; i < events.length; i++) {
+      var ev = events[i];
+      if (ev.type !== 'attachment') continue;
+      var att = ev.attachment;
+      if (!att || att.type !== 'queued_command') continue;
+      if (!att.prompt || att.prompt.trim().length === 0) continue;
+      // Always include queued commands — the isMeta flag on the attachment
+      // wrapper is about the event envelope, not the prompt content itself
+      commands.push({
+        id: att.source_uuid || ev.uuid,
+        role: 'user',
+        content: att.prompt.trim(),
+        timestamp: ev.timestamp,
+        isQueued: true,
+      });
+    }
+    return commands;
+  }
+
+  /**
+   * Group assistant events by requestId (a single assistant turn spans
+   * multiple JSONL lines for thinking → text → tool_use).
+   */
+  function groupAssistantEvents(assistantEvents) {
+    var groups = new Map();
+
+    for (var i = 0; i < assistantEvents.length; i++) {
+      var ev = assistantEvents[i];
+      var key = ev.requestId || ev.uuid;
+      if (!groups.has(key)) {
+        groups.set(key, []);
+      }
+      groups.get(key).push(ev);
+    }
+
+    // Sort each group by timestamp, then merge content blocks
+    var turns = [];
+    var groupKeys = Array.from(groups.keys());
+    for (var gi = 0; gi < groupKeys.length; gi++) {
+      var reqId = groupKeys[gi];
+      var evs = groups.get(reqId);
+      evs.sort(function (a, b) {
+        return new Date(a.timestamp) - new Date(b.timestamp);
+      });
+
+      // Merge content: deduplicate by content type+id
+      var seen = new Set();
+      var allContent = [];
+      var model = null;
+      var usage = null;
+      var timestamp = null;
+      var agentId = null;
+
+      for (var j = 0; j < evs.length; j++) {
+        var ev = evs[j];
+        if (ev.message) {
+          if (ev.message.model) model = ev.message.model;
+          if (ev.message.usage) usage = ev.message.usage;
+          if (ev.timestamp) timestamp = ev.timestamp;
+          if (ev.attributionAgent || ev.agentId) {
+            agentId = ev.attributionAgent || ev.agentId;
+          }
+
+          var blocks = ev.message.content || [];
+          for (var k = 0; k < blocks.length; k++) {
+            var block = blocks[k];
+            var key;
+            if (block.type === 'text') {
+              key = 'text:' + (block.text || '').substring(0, 80);
+            } else if (block.type === 'tool_use') {
+              key = 'tool:' + block.id;
+            } else if (block.type === 'thinking') {
+              key = 'thinking:' + (block.signature || '').substring(0, 20);
+            } else {
+              key = JSON.stringify(block).substring(0, 40);
+            }
+            if (!seen.has(key)) {
+              seen.add(key);
+              allContent.push(block);
+            }
+          }
+        }
+      }
+
+      if (allContent.length > 0) {
+        turns.push({
+          id: reqId,
+          role: 'assistant',
+          content: allContent,
+          model: model,
+          usage: usage,
+          timestamp: timestamp || evs[0].timestamp,
+          agentId: agentId,
+        });
+      }
+    }
+
+    return turns;
+  }
+
+  /**
+   * Extract tool results from tool-result user events.
+   * Returns a Map from tool_use_id → result content.
+   */
+  function extractToolResults(events) {
+    var results = new Map();
+    for (var i = 0; i < events.length; i++) {
+      var ev = events[i];
+      if (!isToolResult(ev)) continue;
+      var blocks = ev.message.content || [];
+      for (var j = 0; j < blocks.length; j++) {
+        var block = blocks[j];
+        if (block.type === 'tool_result' && block.tool_use_id) {
+          results.set(block.tool_use_id, {
+            content: block.content,
+            isError: block.is_error || false,
+            timestamp: ev.timestamp,
+          });
+        }
+      }
+    }
+    return results;
+  }
+
+  /**
+   * Main parsing entry point.
+   * Takes raw JSONL text, returns:
+   * {
+   *   turns: [...],
+   *   sessionId: string,
+   *   cwd: string,
+   *   totalTokens: number,
+   *   models: Set<string>,
+   * }
+   */
+  function parse(text) {
+    var rawEvents = parseJSONL(text);
+    if (rawEvents.length === 0) {
+      return {
+        turns: [],
+        rawEvents: [],
+        sessionId: null,
+        cwd: null,
+        totalTokens: 0,
+        models: new Set(),
+      };
+    }
+
+    // Extract session metadata
+    var sessionId = null;
+    var cwd = null;
+    var models = new Set();
+    var totalTokens = 0;
+
+    for (var i = 0; i < rawEvents.length; i++) {
+      var ev = rawEvents[i];
+      if (ev.sessionId && !sessionId) sessionId = ev.sessionId;
+      if (ev.cwd && !cwd) cwd = ev.cwd;
+    }
+
+    // Debug: count event types in the raw feed
+    var debugCounts = {};
+    for (var di = 0; di < rawEvents.length; di++) {
+      var dt = rawEvents[di].type || 'unknown';
+      debugCounts[dt] = (debugCounts[dt] || 0) + 1;
+    }
+    console.log('[JSONL Viewer] Raw event counts:', JSON.stringify(debugCounts));
+
+    // Filter to meaningful events
+    var meaningful = rawEvents.filter(function (ev) { return !isSkippable(ev); });
+    console.log('[JSONL Viewer] After skip filter:', meaningful.length, 'of', rawEvents.length, 'events remain');
+
+    // Extract queued commands (mid-turn user messages embedded in attachments)
+    var queuedCommands = extractQueuedCommands(rawEvents);
+
+    // Separate events by kind
+    var userMessages = [];
+    var assistantMessages = [];
+
+    for (var mi = 0; mi < meaningful.length; mi++) {
+      var mev = meaningful[mi];
+      if (isRealUserMessage(mev)) {
+        userMessages.push(mev);
+      } else if (isAssistantMessage(mev)) {
+        assistantMessages.push(mev);
+        if (mev.message && mev.message.usage) {
+          totalTokens += (mev.message.usage.input_tokens || 0) + (mev.message.usage.output_tokens || 0);
+        }
+        if (mev.message && mev.message.model) {
+          models.add(mev.message.model);
+        }
+      }
+    }
+
+    console.log('[JSONL Viewer] User msgs:', userMessages.length, 'Assistant msgs:', assistantMessages.length, 'Queued:', queuedCommands.length);
+
+    // Group assistant messages by requestId
+    var assistantTurns = groupAssistantEvents(assistantMessages);
+
+    // Extract tool results from ALL events (including skipped ones, since they carry tool results)
+    var toolResults = extractToolResults(rawEvents);
+
+    // Build user turns from real user messages
+    var userTurns = [];
+    for (var ui = 0; ui < userMessages.length; ui++) {
+      var uev = userMessages[ui];
+      var content = uev.message.content;
+      var text = '';
+      if (typeof content === 'string') {
+        text = content;
+      } else if (Array.isArray(content)) {
+        text = content
+          .filter(function (c) { return c.type === 'text'; })
+          .map(function (c) { return c.text; })
+          .join('\n');
+      }
+
+      if (text.trim().length > 0) {
+        userTurns.push({
+          id: uev.uuid,
+          role: 'user',
+          content: text.trim(),
+          timestamp: uev.timestamp,
+          promptId: uev.promptId,
+        });
+      }
+    }
+
+    // Add queued commands to user turns
+    for (var qi = 0; qi < queuedCommands.length; qi++) {
+      userTurns.push(queuedCommands[qi]);
+    }
+
+    // Interleave user and assistant turns in chronological order
+    var allTurns = [];
+    var ui2 = 0, ai2 = 0;
+
+    userTurns.sort(function (a, b) {
+      return new Date(a.timestamp) - new Date(b.timestamp);
+    });
+    assistantTurns.sort(function (a, b) {
+      return new Date(a.timestamp) - new Date(b.timestamp);
+    });
+
+    while (ui2 < userTurns.length || ai2 < assistantTurns.length) {
+      var userNext = ui2 < userTurns.length ? userTurns[ui2] : null;
+      var asstNext = ai2 < assistantTurns.length ? assistantTurns[ai2] : null;
+
+      if (!userNext) {
+        allTurns.push(asstNext);
+        ai2++;
+      } else if (!asstNext) {
+        allTurns.push(userNext);
+        ui2++;
+      } else {
+        var ut = new Date(userNext.timestamp).getTime();
+        var at = new Date(asstNext.timestamp).getTime();
+        if (ut <= at) {
+          allTurns.push(userNext);
+          ui2++;
+        } else {
+          allTurns.push(asstNext);
+          ai2++;
+        }
+      }
+    }
+
+    // Attach tool results to corresponding tool_use blocks
+    for (var ti = 0; ti < allTurns.length; ti++) {
+      var turn = allTurns[ti];
+      if (turn.role !== 'assistant') continue;
+      var blocks = turn.content || [];
+      for (var bi = 0; bi < blocks.length; bi++) {
+        var block = blocks[bi];
+        if (block.type === 'tool_use' && toolResults.has(block.id)) {
+          block._result = toolResults.get(block.id);
+        }
+      }
+    }
+
+    var result = {
+      turns: allTurns,
+      rawEvents: rawEvents,
+      sessionId: sessionId,
+      cwd: cwd,
+      totalTokens: totalTokens,
+      models: models,
+    };
+
+    console.log('[JSONL Viewer] Final turns:', allTurns.length, 'Models:', Array.from(models));
+    return result;
+  }
+
+  /**
+   * Convert parsed data to export format.
+   */
+  function toExportData(parsed) {
+    return {
+      sessionId: parsed.sessionId,
+      cwd: parsed.cwd,
+      exportedAt: new Date().toISOString(),
+      models: Array.from(parsed.models),
+      totalTokens: parsed.totalTokens,
+      turnCount: parsed.turns.length,
+      turns: parsed.turns.map(function (t) {
+        return {
+          role: t.role,
+          timestamp: t.timestamp,
+          model: t.model || null,
+          content: t.content,
+          usage: t.usage || null,
+        };
+      }),
+    };
+  }
+
+  window.JSONLViewer = window.JSONLViewer || {};
+  window.JSONLViewer.Parser = { parseJSONL: parseJSONL, parse: parse, toExportData: toExportData };
+})();
+
+</script>
+<script>
+/**
+ * Search engine — full-text search across conversation turns.
+ * Attaches to window.JSONLViewer.Search
+ */
+(function () {
+  'use strict';
+
+  class SearchEngine {
+    constructor() {
+      this.turns = [];
+      this.results = [];
+      this.currentIndex = -1;
+      this.query = '';
+    }
+
+    /**
+     * Set the turns to search over.
+     */
+    setTurns(turns) {
+      this.turns = turns;
+      this.clear();
+    }
+
+    /**
+     * Execute a search query.
+     * Returns array of { turnIndex, element, text, startOffset } for each match.
+     */
+    search(query) {
+      this.clear();
+      this.query = query.trim();
+
+      if (!this.query || this.query.length < 2) {
+        return [];
+      }
+
+      const lowerQuery = this.query.toLowerCase();
+
+      for (let i = 0; i < this.turns.length; i++) {
+        const turn = this.turns[i];
+        const text = this._getTurnText(turn);
+        if (!text) continue;
+
+        const lowerText = text.toLowerCase();
+        let idx = 0;
+        while ((idx = lowerText.indexOf(lowerQuery, idx)) !== -1) {
+          this.results.push({
+            turnIndex: i,
+            text: text.substring(Math.max(0, idx - 20), idx + lowerQuery.length + 20),
+            startOffset: idx,
+            matchLength: lowerQuery.length,
+          });
+          idx += lowerQuery.length;
+        }
+      }
+
+      this.currentIndex = this.results.length > 0 ? 0 : -1;
+      return this.results;
+    }
+
+    /**
+     * Navigate to next result. Returns the new current result or null.
+     */
+    next() {
+      if (this.results.length === 0) return null;
+      this.currentIndex = (this.currentIndex + 1) % this.results.length;
+      return this.results[this.currentIndex];
+    }
+
+    /**
+     * Navigate to previous result.
+     */
+    prev() {
+      if (this.results.length === 0) return null;
+      this.currentIndex = (this.currentIndex - 1 + this.results.length) % this.results.length;
+      return this.results[this.currentIndex];
+    }
+
+    /**
+     * Get the current result.
+     */
+    current() {
+      if (this.currentIndex < 0 || this.currentIndex >= this.results.length) return null;
+      return this.results[this.currentIndex];
+    }
+
+    /**
+     * Clear search state.
+     */
+    clear() {
+      this.results = [];
+      this.currentIndex = -1;
+      this.query = '';
+    }
+
+    /**
+     * Check if there are any results.
+     */
+    hasResults() {
+      return this.results.length > 0;
+    }
+
+    /**
+     * Extract searchable text from a turn.
+     */
+    _getTurnText(turn) {
+      if (typeof turn.content === 'string') return turn.content;
+      if (!Array.isArray(turn.content)) return '';
+
+      return turn.content
+        .filter(c => c.type === 'text')
+        .map(c => c.text)
+        .join(' ');
+    }
+  }
+
+  window.JSONLViewer = window.JSONLViewer || {};
+  window.JSONLViewer.SearchEngine = SearchEngine;
+})();
+
+</script>
+<script>
+/**
+ * Export engine — Markdown, PDF, and DXT export.
+ * Attaches to window.JSONLViewer.Exporter
+ */
+(function () {
+  'use strict';
+
+  /**
+   * Format a timestamp for display.
+   */
+  function formatTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    return d.toLocaleString();
+  }
+
+  /**
+   * Escape HTML entities (for PDF generation).
+   */
+  function escapeHtml(str) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    return String(str).replace(/[&<>"']/g, c => map[c]);
+  }
+
+  /**
+   * Default filter — all content types included.
+   */
+  function defaultFilters() {
+    return { text: true, thinking: true, read: true, write: true, edit: true, commands: true, otherTools: true };
+  }
+
+  /**
+   * Check if a content block should be included in export given the active filters.
+   * Returns true if the block passes the filter (should be included).
+   */
+  function blockPassesFilter(block, filters) {
+    if (!filters) return true;
+    if (block.type === 'text') return filters.text !== false;
+    if (block.type === 'thinking') return filters.thinking !== false;
+    if (block.type === 'tool_use') {
+      var name = block.name || '';
+      if (name === 'Read') return filters.read !== false;
+      if (name === 'Write') return filters.write !== false;
+      if (name === 'Edit') return filters.edit !== false;
+      if (name === 'Bash' || name === 'PowerShell') return filters.commands !== false;
+      return filters.otherTools !== false;
+    }
+    return true; // unknown types — include by default
+  }
+
+  /**
+   * Filter an array of content blocks, returning only those that pass the filters.
+   * String content always passes (it's a user message).
+   */
+  function filterContent(content, filters) {
+    if (!filters) return content;
+    if (typeof content === 'string') return content;
+    if (!Array.isArray(content)) return content;
+    return content.filter(function (block) {
+      return blockPassesFilter(block, filters);
+    });
+  }
+
+  /**
+   * Generate Markdown from parsed conversation.
+   * @param {Object} parsed — result from Parser.toExportData()
+   * @param {Object} [filters] — optional content filters
+   */
+  function generateMarkdown(parsed, filters) {
+    if (!filters) filters = defaultFilters();
+    const lines = [];
+    const data = parsed.turns || parsed;
+
+    lines.push('# Claude Code Conversation');
+    lines.push('');
+    if (parsed.sessionId) lines.push('Session: `' + parsed.sessionId + '`  ');
+    if (parsed.cwd) lines.push('Directory: `' + parsed.cwd + '`  ');
+    if (parsed.models && parsed.models.length) lines.push('Models: ' + parsed.models.join(', ') + '  ');
+    lines.push('Turns: ' + data.length + '  ');
+    lines.push('Exported: ' + new Date().toISOString() + '  ');
+    lines.push('');
+    lines.push('---');
+    lines.push('');
+
+    for (var ti = 0; ti < data.length; ti++) {
+      var turn = data[ti];
+      var ts = formatTime(turn.timestamp);
+      var role = turn.role === 'user' ? 'User' : 'Claude';
+
+      lines.push('### ' + role + (ts ? ' — ' + ts : ''));
+      if (turn.model) lines.push('*Model: ' + turn.model + '*');
+      lines.push('');
+
+      var content = turn.content;
+
+      if (typeof content === 'string') {
+        lines.push(content);
+        lines.push('');
+        continue;
+      }
+
+      if (!Array.isArray(content)) {
+        lines.push('');
+        continue;
+      }
+
+      var filtered = filterContent(content, filters);
+
+      for (var bi = 0; bi < filtered.length; bi++) {
+        var block = filtered[bi];
+        if (block.type === 'text' && block.text) {
+          lines.push(block.text);
+          lines.push('');
+        } else if (block.type === 'thinking' && block.thinking) {
+          lines.push('<details>');
+          lines.push('<summary>Thinking</summary>');
+          lines.push('');
+          lines.push(block.thinking);
+          lines.push('');
+          lines.push('</details>');
+          lines.push('');
+        } else if (block.type === 'tool_use') {
+          lines.push('<details>');
+          lines.push('<summary>Tool: ' + block.name + '</summary>');
+          lines.push('');
+          lines.push('```json');
+          lines.push(JSON.stringify(block.input, null, 2));
+          lines.push('```');
+
+          if (block._result) {
+            var r = block._result;
+            if (r.isError) lines.push('**Error:**');
+            lines.push('```');
+            lines.push(typeof r.content === 'string' ? r.content : JSON.stringify(r.content, null, 2));
+            lines.push('```');
+          }
+
+          lines.push('</details>');
+          lines.push('');
+        }
+      }
+    }
+
+    return lines.join('\n');
+  }
+
+  /**
+   * Generate styled HTML for PDF export.
+   */
+  function generatePDFHTML(parsed, filters) {
+    if (!filters) filters = defaultFilters();
+    const data = parsed.turns || parsed;
+    const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+
+    const css = isDark ? `
+      body { background:#0f172a; color:#f1f5f9; font-family:'Segoe UI',system-ui,sans-serif; font-size:14px; line-height:1.7; padding:40px; max-width:800px; margin:0 auto; }
+      .turn { margin:16px 0; padding:12px 16px; border-radius:12px; }
+      .user { background:#3b82f6; color:#fff; }
+      .assistant { background:#1e293b; color:#e2e8f0; }
+      .role { font-weight:700; font-size:12px; text-transform:uppercase; margin-bottom:6px; opacity:0.7; }
+      .time { font-size:10px; opacity:0.5; }
+      pre { background:#0f172a; padding:12px; border-radius:8px; overflow-x:auto; font-size:12px; }
+      code { font-family:'Consolas',monospace; font-size:0.9em; }
+      .tool { border-left:3px solid #166534; padding:8px 12px; margin:8px 0; background:#0f2b1a; border-radius:0 8px 8px 0; }
+      .tool-name { font-weight:600; color:#86efac; }
+      h1 { font-size:22px; border-bottom:1px solid #334155; padding-bottom:8px; }
+      hr { border:none; border-top:1px solid #334155; margin:24px 0; }
+      .meta { color:#64748b; font-size:12px; margin-bottom:24px; }
+    ` : `
+      body { background:#fafafa; color:#111827; font-family:'Segoe UI',system-ui,sans-serif; font-size:14px; line-height:1.7; padding:40px; max-width:800px; margin:0 auto; }
+      .turn { margin:16px 0; padding:12px 16px; border-radius:12px; }
+      .user { background:#2563eb; color:#fff; }
+      .assistant { background:#f3f4f6; color:#111827; }
+      .role { font-weight:700; font-size:12px; text-transform:uppercase; margin-bottom:6px; opacity:0.7; }
+      .time { font-size:10px; opacity:0.5; }
+      pre { background:#1e293b; color:#e2e8f0; padding:12px; border-radius:8px; overflow-x:auto; font-size:12px; }
+      code { font-family:'Consolas',monospace; font-size:0.9em; }
+      .tool { border-left:3px solid #86efac; padding:8px 12px; margin:8px 0; background:#f0fdf4; border-radius:0 8px 8px 0; }
+      .tool-name { font-weight:600; color:#166534; }
+      h1 { font-size:22px; border-bottom:1px solid #e5e7eb; padding-bottom:8px; }
+      hr { border:none; border-top:1px solid #e5e7eb; margin:24px 0; }
+      .meta { color:#9ca3af; font-size:12px; margin-bottom:24px; }
+    `;
+
+    let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Claude Code Conversation</title><style>${css}@media print { body { -webkit-print-color-adjust:exact; print-color-adjust:exact; } }</style></head><body>`;
+    html += `<h1>Claude Code Conversation</h1>`;
+    html += `<div class="meta">`;
+    if (parsed.sessionId) html += `<div>Session: <code>${escapeHtml(parsed.sessionId)}</code></div>`;
+    if (parsed.cwd) html += `<div>Directory: <code>${escapeHtml(parsed.cwd)}</code></div>`;
+    if (parsed.models && parsed.models.length) html += `<div>Models: ${[...parsed.models].join(', ')}</div>`;
+    html += `<div>Turns: ${data.length} | Exported: ${new Date().toLocaleString()}</div>`;
+    html += `</div><hr>`;
+
+    for (const turn of data) {
+      const roleClass = turn.role === 'user' ? 'user' : 'assistant';
+      const roleLabel = turn.role === 'user' ? 'User' : (turn.model ? `Claude (${turn.model})` : 'Claude');
+      const ts = formatTime(turn.timestamp);
+
+      html += `<div class="turn ${roleClass}">`;
+      html += `<div class="role">${escapeHtml(roleLabel)} <span class="time">${escapeHtml(ts)}</span></div>`;
+
+      const content = turn.content;
+
+      if (typeof content === 'string') {
+        html += `<div>${escapeHtml(content).replace(/\n/g, '<br>')}</div>`;
+      } else if (Array.isArray(content)) {
+        var filtered = filterContent(content, filters);
+        for (var bi = 0; bi < filtered.length; bi++) {
+          var block = filtered[bi];
+          if (block.type === 'text' && block.text) {
+            html += `<div>${escapeHtml(block.text).replace(/\n/g, '<br>')}</div>`;
+          } else if (block.type === 'tool_use') {
+            html += `<div class="tool"><span class="tool-name">🔧 ${escapeHtml(block.name)}</span>`;
+            html += `<pre>${escapeHtml(JSON.stringify(block.input, null, 2))}</pre>`;
+            if (block._result) {
+              var r = block._result;
+              if (r.isError) html += `<strong>❌ Error</strong>`;
+              html += `<pre>${escapeHtml(typeof r.content === 'string' ? r.content : JSON.stringify(r.content, null, 2))}</pre>`;
+            }
+            html += `</div>`;
+          } else if (block.type === 'thinking' && block.thinking) {
+            html += `<details><summary>💭 Thinking</summary><pre>${escapeHtml(block.thinking)}</pre></details>`;
+          }
+        }
+      }
+
+      html += `</div>`;
+    }
+
+    html += `</body></html>`;
+    return html;
+  }
+
+  /**
+   * Generate DXT format (custom JSON preserving conversation metadata).
+   * DXT = Documented eXchange Transcript — a structured JSON archive.
+   */
+  function generateDXT(parsed, filters) {
+    if (!filters) filters = defaultFilters();
+    const data = parsed.turns || parsed;
+
+    const dxt = {
+      format: 'dxt/v1',
+      exportedAt: new Date().toISOString(),
+      exporter: 'claude-code-viewer',
+      conversation: {
+        sessionId: parsed.sessionId || null,
+        workingDirectory: parsed.cwd || null,
+        models: parsed.models ? [...parsed.models] : [],
+        totalTokens: parsed.totalTokens || 0,
+        turnCount: data.length,
+      },
+      messages: data.map((turn, idx) => {
+        const msg = {
+          index: idx,
+          role: turn.role,
+          timestamp: turn.timestamp || null,
+        };
+
+        if (turn.model) msg.model = turn.model;
+        if (turn.usage) msg.usage = turn.usage;
+
+        const content = turn.content;
+        if (typeof content === 'string') {
+          msg.content = content;
+        } else if (Array.isArray(content)) {
+          var filtered = filterContent(content, filters);
+          msg.blocks = filtered.map(function (block) {
+            var b = { type: block.type };
+            if (block.type === 'text') {
+              b.text = block.text;
+            } else if (block.type === 'tool_use') {
+              b.id = block.id;
+              b.name = block.name;
+              b.input = block.input;
+              if (block._result) {
+                b.result = {
+                  content: block._result.content,
+                  isError: block._result.isError,
+                };
+              }
+            } else if (block.type === 'thinking') {
+              b.thinking = block.thinking;
+            }
+            return b;
+          });
+        }
+
+        return msg;
+      }),
+    };
+
+    return JSON.stringify(dxt, null, 2);
+  }
+
+  /**
+   * Trigger a file download in the browser.
+   */
+  function download(content, filename, mimeType) {
+    try {
+      var blob = new Blob([content], { type: mimeType });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error('[Exporter] Download error:', e);
+    }
+  }
+
+  /**
+   * Export as Markdown.
+   */
+  function exportMarkdown(parsed, filters) {
+    var md = generateMarkdown(parsed, filters);
+    var sid = (parsed.sessionId || '').substring(0, 8) || 'export';
+    var filename = 'claude-conversation-' + sid + '.md';
+    download(md, filename, 'text/markdown');
+  }
+
+  /**
+   * Export as PDF. Opens a new window and triggers print.
+   */
+  function exportPDF(parsed, filters) {
+    var html = generatePDFHTML(parsed, filters);
+    var win = window.open('', '_blank', 'width=900,height=700');
+    if (!win) {
+      var sid = (parsed.sessionId || '').substring(0, 8) || 'export';
+      download(html, 'claude-conversation-' + sid + '.html', 'text/html');
+      return;
+    }
+    win.document.write(html);
+    win.document.close();
+    win.focus();
+    setTimeout(function () {
+      win.print();
+    }, 500);
+  }
+
+  /**
+   * Export as DXT.
+   */
+  function exportDXT(parsed, filters) {
+    var json = generateDXT(parsed, filters);
+    var sid = (parsed.sessionId || '').substring(0, 8) || 'export';
+    download(json, 'claude-conversation-' + sid + '.dxt', 'application/json');
+  }
+
+  window.JSONLViewer = window.JSONLViewer || {};
+  window.JSONLViewer.Exporter = {
+    exportMarkdown,
+    exportPDF,
+    exportDXT,
+    generateMarkdown,
+    generateDXT,
+  };
+})();
+
+</script>
+<script>
+/**
+ * Chat renderer — renders parsed turns into the DOM.
+ * Attaches to window.JSONLViewer.Renderer
+ */
+(function () {
+  'use strict';
+
+  const V = window.JSONLViewer;
+  const container = () => document.getElementById('chatMessages');
+
+  // Track tool call open state for re-renders
+  const toolOpenState = new Map();
+
+  /**
+   * Format a timestamp for display.
+   */
+  function formatTime(ts) {
+    if (!ts) return '';
+    const d = new Date(ts);
+    const now = new Date();
+    const isToday = d.toDateString() === now.toDateString();
+    if (isToday) return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    return d.toLocaleDateString([], { month: 'short', day: 'numeric' }) + ' ' +
+           d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  /**
+   * Format a timestamp as full datetime (tooltip).
+   */
+  function formatFullTime(ts) {
+    if (!ts) return '';
+    return new Date(ts).toLocaleString();
+  }
+
+  /**
+   * Configure marked.js.
+   */
+  function configureMarked() {
+    if (typeof marked === 'undefined') {
+      // Fallback if CDN fails: basic text render
+      return;
+    }
+
+    marked.setOptions({
+      breaks: true,
+      gfm: true,
+      highlight: function (code, lang) {
+        if (lang && typeof hljs !== 'undefined' && hljs.getLanguage(lang)) {
+          try {
+            return hljs.highlight(code, { language: lang, ignoreIllegals: true }).value;
+          } catch (e) { /* fall through */ }
+        }
+        if (typeof hljs !== 'undefined') {
+          try {
+            return hljs.highlightAuto(code).value;
+          } catch (e) { /* fall through */ }
+        }
+        return escapeHtml(code);
+      },
+    });
+
+    // Custom renderer to handle code blocks with copy buttons
+    const renderer = new marked.Renderer();
+    renderer.code = function ({ text, lang }) {
+      let highlighted;
+      if (lang && typeof hljs !== 'undefined' && hljs.getLanguage(lang)) {
+        try {
+          highlighted = hljs.highlight(text, { language: lang, ignoreIllegals: true }).value;
+        } catch (e) {
+          highlighted = escapeHtml(text);
+        }
+      } else if (typeof hljs !== 'undefined') {
+        try {
+          highlighted = hljs.highlightAuto(text).value;
+        } catch (e) {
+          highlighted = escapeHtml(text);
+        }
+      } else {
+        highlighted = escapeHtml(text);
+      }
+
+      const langLabel = lang || 'code';
+      const blockId = 'code-' + Math.random().toString(36).substring(2, 8);
+
+      return `<div class="code-block-wrapper">
+        <div class="code-block-header">
+          <span class="code-block-lang">${escapeHtml(langLabel)}</span>
+          <button class="code-block-copy" onclick="JSONLViewer.Renderer.copyCode('${blockId}')">Copy</button>
+        </div>
+        <pre><code id="${blockId}">${highlighted}</code></pre>
+      </div>`;
+    };
+
+    marked.use({ renderer });
+  }
+
+  /**
+   * Escape HTML.
+   */
+  function escapeHtml(str) {
+    const map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' };
+    return String(str).replace(/[&<>"']/g, c => map[c]);
+  }
+
+  /**
+   * Copy code block content to clipboard.
+   */
+  function copyCode(blockId) {
+    const el = document.getElementById(blockId);
+    if (!el) return;
+    const text = el.textContent;
+    navigator.clipboard.writeText(text).then(() => {
+      const btn = el.closest('.code-block-wrapper').querySelector('.code-block-copy');
+      if (btn) {
+        btn.textContent = 'Copied!';
+        setTimeout(() => { btn.textContent = 'Copy'; }, 1500);
+      }
+    }).catch(() => {
+      // Fallback
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    });
+  }
+
+  /**
+   * Render Markdown text to HTML.
+   */
+  function renderMarkdown(text) {
+    if (typeof marked !== 'undefined') {
+      try {
+        return marked.parse(text);
+      } catch (e) {
+        console.warn('Markdown parse error:', e);
+      }
+    }
+    // Fallback: basic text with paragraph breaks
+    return '<p>' + escapeHtml(text).replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>') + '</p>';
+  }
+
+  /**
+   * Render a single content block (text, tool_use, thinking).
+   */
+  function renderContentBlock(block) {
+    if (block.type === 'text' && block.text) {
+      return `<div class="msg-content">${renderMarkdown(block.text)}</div>`;
+    }
+
+    if (block.type === 'thinking' && block.thinking) {
+      const id = 'thinking-' + Math.random().toString(36).substring(2, 8);
+      return `<div class="thinking-block" id="${id}">
+        <button class="thinking-header" onclick="JSONLViewer.Renderer.toggleCollapsible('${id}')">
+          <svg class="thinking-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+          💭 Thinking
+        </button>
+        <div class="thinking-body">${renderMarkdown(block.thinking)}</div>
+      </div>`;
+    }
+
+    if (block.type === 'tool_use') {
+      const id = 'tool-' + Math.random().toString(36).substring(2, 8);
+      let inputStr = '';
+      try {
+        inputStr = JSON.stringify(block.input, null, 2);
+      } catch (e) {
+        inputStr = String(block.input || '');
+      }
+
+      const wasOpen = toolOpenState.get(block.id);
+      const openClass = wasOpen ? ' open' : '';
+
+      let resultHtml = '';
+      if (block._result) {
+        const r = block._result;
+        const resultContent = typeof r.content === 'string' ? r.content : JSON.stringify(r.content, null, 2);
+        const errorClass = r.isError ? ' error' : '';
+        resultHtml = `<div class="tool-result-block${openClass}">
+          <button class="tool-result-header" onclick="JSONLViewer.Renderer.toggleCollapsible(this.parentElement)">
+            <svg class="thinking-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="9 18 15 12 9 6"/>
+            </svg>
+            Result${r.isError ? ' ❌ (error)' : ''}
+          </button>
+          <div class="tool-result-content">
+            <pre>${escapeHtml(resultContent)}</pre>
+          </div>
+        </div>`;
+      }
+
+      return `<div class="tool-call-block${openClass}" id="${id}">
+        <button class="tool-call-header" onclick="JSONLViewer.Renderer.toggleToolCall('${id}', '${escapeHtml(block.id)}')">
+          <svg class="thinking-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="9 18 15 12 9 6"/>
+          </svg>
+          <span class="tool-call-icon">🔧</span>
+          <span class="tool-call-name">${escapeHtml(block.name)}</span>
+        </button>
+        <div class="tool-call-body">
+          <div class="tool-call-section">
+            <div class="tool-call-section-label">Input</div>
+            <pre>${escapeHtml(inputStr)}</pre>
+          </div>
+          ${resultHtml}
+        </div>
+      </div>`;
+    }
+
+    return '';
+  }
+
+  /**
+   * Toggle a collapsible element.
+   */
+  function toggleCollapsible(el) {
+    if (typeof el === 'string') {
+      el = document.getElementById(el);
+    }
+    if (!el) return;
+    el.classList.toggle('open');
+  }
+
+  /**
+   * Toggle a tool call block and remember state.
+   */
+  function toggleToolCall(blockId, toolUseId) {
+    const el = document.getElementById(blockId);
+    if (!el) return;
+    el.classList.toggle('open');
+
+    // Remember open state
+    const isOpen = el.classList.contains('open');
+    if (isOpen) {
+      toolOpenState.set(toolUseId, true);
+    } else {
+      toolOpenState.delete(toolUseId);
+    }
+  }
+
+  /**
+   * Render a single turn.
+   */
+  function renderTurn(turn) {
+    const roleClass = turn.role === 'user' ? 'turn-user'
+                    : turn.role === 'assistant' ? 'turn-assistant'
+                    : 'turn-system';
+    const roleLabel = turn.role === 'user'
+                    ? (turn.isQueued ? 'You (mid-turn)' : 'You')
+                    : turn.role === 'assistant' ? (turn.agentId || 'Claude')
+                    : 'System';
+    const ts = formatTime(turn.timestamp);
+    const fullTs = formatFullTime(turn.timestamp);
+    const modelLabel = turn.model ? ` · ${turn.model.split('-').slice(0, 3).join('-')}` : '';
+
+    let html = `<div class="turn ${roleClass}" data-role="${turn.role}" data-turn-id="${turn.id}">
+      <div class="msg-meta">
+        <span class="msg-role">${escapeHtml(roleLabel)}</span>
+        ${modelLabel ? `<span class="msg-model">${escapeHtml(modelLabel)}</span>` : ''}
+        ${ts ? `<span class="msg-time" title="${escapeHtml(fullTs)}">${escapeHtml(ts)}</span>` : ''}
+      </div>
+      <div class="msg-bubble">`;
+
+    const content = turn.content;
+
+    if (typeof content === 'string') {
+      html += `<div class="msg-content">${renderMarkdown(content)}</div>`;
+    } else if (Array.isArray(content)) {
+      for (const block of content) {
+        html += renderContentBlock(block);
+      }
+    }
+
+    html += `</div></div>`;
+    return html;
+  }
+
+  /**
+   * Clear all rendered content.
+   */
+  function clear() {
+    const el = container();
+    if (el) el.innerHTML = '';
+    toolOpenState.clear();
+  }
+
+  /**
+   * Render the full conversation.
+   */
+  function renderConversation(turns) {
+    const el = container();
+    if (!el) return;
+
+    toolOpenState.clear();
+    let html = '';
+
+    for (const turn of turns) {
+      html += renderTurn(turn);
+    }
+
+    el.innerHTML = html;
+  }
+
+  /**
+   * Scroll to a specific turn (for search navigation).
+   */
+  function scrollToTurn(turnIndex) {
+    const el = container();
+    if (!el) return;
+
+    const turns = el.querySelectorAll('.turn');
+    if (turnIndex >= 0 && turnIndex < turns.length) {
+      const target = turns[turnIndex];
+      target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  }
+
+  /**
+   * Highlight search matches in the rendered content.
+   */
+  function highlightSearch(query, currentIndex) {
+    if (!query || query.length < 2) return;
+
+    const el = container();
+    if (!el) return;
+
+    // Remove existing highlights
+    el.querySelectorAll('.search-highlight').forEach(s => {
+      const parent = s.parentNode;
+      parent.replaceChild(document.createTextNode(s.textContent), s);
+    });
+
+    // Highlight matches in text nodes within message bubbles
+    const bubbles = el.querySelectorAll('.msg-bubble');
+    const state = { current: 0 };
+
+    for (const bubble of bubbles) {
+      highlightTextNodes(bubble, query, currentIndex, state);
+    }
+  }
+
+  function highlightTextNodes(node, query, targetIndex, state) {
+    if (node.nodeType === Node.TEXT_NODE) {
+      const text = node.textContent;
+      const lower = text.toLowerCase();
+      const lowerQuery = query.toLowerCase();
+      let idx = 0;
+      let result = '';
+      let lastIdx = 0;
+
+      while ((idx = lower.indexOf(lowerQuery, idx)) !== -1) {
+        result += escapeHtml(text.substring(lastIdx, idx));
+        const isCurrent = state.current === targetIndex;
+        const currentClass = isCurrent ? ' current' : '';
+        result += `<mark class="search-highlight${currentClass}">${escapeHtml(text.substring(idx, idx + query.length))}</mark>`;
+        state.current++;
+        idx += query.length;
+        lastIdx = idx;
+      }
+      result += escapeHtml(text.substring(lastIdx));
+
+      if (result !== text) {
+        const span = document.createElement('span');
+        span.innerHTML = result;
+        node.parentNode.replaceChild(span, node);
+      }
+    } else if (node.nodeType === Node.ELEMENT_NODE) {
+      // Skip fenced code blocks and tool/thinking wrappers, but allow inline <code>
+      if (node.matches('pre, .code-block-wrapper, .tool-call-block, .thinking-block')) {
+        return;
+      }
+      for (const child of [...node.childNodes]) {
+        highlightTextNodes(child, query, targetIndex, state);
+      }
+    }
+  }
+
+  /**
+   * Re-render after search clear.
+   */
+  function clearHighlights() {
+    const el = container();
+    if (!el) return;
+    el.querySelectorAll('.search-highlight').forEach(s => {
+      const parent = s.parentNode;
+      if (parent) {
+        parent.replaceChild(document.createTextNode(s.textContent), s);
+      }
+    });
+  }
+
+  // Initialize marked configuration
+  configureMarked();
+
+  window.JSONLViewer = window.JSONLViewer || {};
+  window.JSONLViewer.Renderer = {
+    renderConversation,
+    clear,
+    scrollToTurn,
+    highlightSearch,
+    clearHighlights,
+    renderMarkdown,
+    escapeHtml,
+    copyCode,
+    toggleCollapsible,
+    toggleToolCall,
+  };
+})();
+
+</script>
+<script>
+/**
+ * File Browser — lets the user open a whole folder (e.g. ~/.claude/projects)
+ * and browse its .jsonl sessions from a sidebar, instead of picking one
+ * file at a time.
+ *
+ * Uses the File System Access API (window.showDirectoryPicker), which is
+ * only available in Chromium browsers (Chrome/Edge). No directory handles
+ * are persisted across reloads — every "Open Folder" click starts fresh.
+ *
+ * Attaches to window.JSONLViewer.FileBrowser
+ */
+(function () {
+  'use strict';
+
+  const MAX_DEPTH = 3;          // how many directory levels deep to scan
+  const TITLE_PEEK_BYTES = 65536; // read only the first 64KB when deriving a title
+
+  // ── DOM refs ──────────────────────────────────────────────────────
+  const dom = {};
+  function cacheDom() {
+    dom.btnOpenFolder = document.getElementById('btnOpenFolder');
+    dom.btnOpenFolderEmpty = document.getElementById('btnOpenFolderEmpty');
+    dom.sidebar = document.getElementById('sessionSidebar');
+    dom.sidebarList = document.getElementById('sidebarList');
+    dom.btnSidebarToggle = document.getElementById('btnSidebarToggle');
+    dom.toastContainer = document.getElementById('toastContainer');
+  }
+
+  // ── Toast (self-contained copy — same #toastContainer as app.js) ──
+  function showToast(message, type) {
+    if (type === void 0) type = '';
+    if (!dom.toastContainer) return;
+    const toast = document.createElement('div');
+    toast.className = 'toast ' + type;
+    toast.textContent = message;
+    dom.toastContainer.appendChild(toast);
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 3000);
+  }
+
+  // Note: all session/file/project names are inserted via textContent
+  // (never innerHTML) below, so they can never break out of their element —
+  // no separate escapeHtml() call is needed for the DOM built in this file.
+
+  // ── Fixed inline-SVG icon templates (no disk-derived data inside them,
+  // so building them via innerHTML is safe — matches the pattern already
+  // used for the .thinking-chevron icon elsewhere in the app) ──────────
+  const FOLDER_ICON_MARKUP =
+    '<svg class="sidebar-group-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+    '<path d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/></svg>';
+  const CHEVRON_ICON_MARKUP =
+    '<svg class="sidebar-group-chevron thinking-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">' +
+    '<polyline points="9 18 15 12 9 6"/></svg>';
+
+  /** Build a DOM node from a fixed, trusted SVG template string. */
+  function iconFromTemplate(markup) {
+    const template = document.createElement('template');
+    template.innerHTML = markup;
+    return template.content.firstChild;
+  }
+
+  // ── Directory scanning ──────────────────────────────────────────────
+
+  /**
+   * Recursively walk a directory handle (depth-limited) collecting
+   * .jsonl file handles. `pathParts` are the directory names traversed
+   * so far, relative to the picked root (root itself is not included).
+   */
+  async function scanDirectory(dirHandle, depth, pathParts, out) {
+    if (depth > MAX_DEPTH) return;
+    for await (const entry of dirHandle.values()) {
+      if (entry.kind === 'file') {
+        if (entry.name.toLowerCase().endsWith('.jsonl')) {
+          out.push({ handle: entry, pathParts: pathParts });
+        }
+      } else if (entry.kind === 'directory') {
+        await scanDirectory(entry, depth + 1, pathParts.concat(entry.name), out);
+      }
+    }
+  }
+
+  /**
+   * Derive a title for a session file by peeking at only its first 64KB.
+   * Priority:
+   *   1. First line that JSON-parses to {type:"summary", summary:"..."}
+   *   2. First user event with string message.content not starting with "<"
+   *      (first 80 chars)
+   *   3. null (caller falls back to the filename stem)
+   */
+  async function computeTitle(file) {
+    let text;
+    try {
+      const slice = file.slice(0, TITLE_PEEK_BYTES);
+      text = await slice.text();
+    } catch (e) {
+      return null;
+    }
+
+    const lines = text.split(/\r?\n/);
+    let summaryTitle = null;
+    let userTitle = null;
+
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim();
+      if (!line) continue;
+      let obj;
+      try {
+        obj = JSON.parse(line);
+      } catch (e) {
+        continue; // last line in the 64KB slice is often cut off mid-JSON — expected
+      }
+
+      if (summaryTitle === null && obj && obj.type === 'summary' &&
+          typeof obj.summary === 'string' && obj.summary.trim().length > 0) {
+        summaryTitle = obj.summary.trim();
+      }
+
+      if (userTitle === null && obj && obj.type === 'user' && obj.message &&
+          typeof obj.message.content === 'string') {
+        const content = obj.message.content;
+        if (content.length > 0 && content[0] !== '<') {
+          const trimmed = content.trim();
+          if (trimmed.length > 0) userTitle = trimmed.slice(0, 80);
+        }
+      }
+    }
+
+    return summaryTitle || userTitle || null;
+  }
+
+  /**
+   * Trim the encoded project-directory name down to something readable.
+   * Encoded names look like "C--Users-maddy-Documents-website-jsonl-conversation"
+   * (path separators/colons replaced with "-"). We only strip the leading
+   * "<drive>--Users-<username>-" prefix when it's clearly recognizable —
+   * anything else is shown as-is rather than risk a lossy, wrong decode
+   * (dashes also legitimately appear inside real directory names).
+   */
+  function displayProjectName(encodedName) {
+    const m = encodedName.match(/^[A-Za-z]--Users-[^-]+-(.+)$/);
+    return m ? m[1] : encodedName;
+  }
+
+  function formatSize(bytes) {
+    if (bytes >= 1024 * 1024) return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+    if (bytes >= 1024) return (bytes / 1024).toFixed(0) + ' KB';
+    return bytes + ' B';
+  }
+
+  function formatDate(ts) {
+    const d = new Date(ts);
+    if (isNaN(d.getTime())) return '';
+    const now = new Date();
+    const sameDay = d.getFullYear() === now.getFullYear() &&
+      d.getMonth() === now.getMonth() &&
+      d.getDate() === now.getDate();
+    if (sameDay) {
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      return hh + ':' + mm;
+    }
+    return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+  }
+
+  // ── State ────────────────────────────────────────────────────────
+  let activeItemEl = null;
+
+  function setActiveItem(el) {
+    if (activeItemEl && activeItemEl !== el) activeItemEl.classList.remove('active');
+    activeItemEl = el;
+    if (el) el.classList.add('active');
+  }
+
+  function clearActive() {
+    if (activeItemEl) activeItemEl.classList.remove('active');
+    activeItemEl = null;
+  }
+
+  function setSidebarVisible(visible) {
+    if (!dom.sidebar) return;
+    dom.sidebar.style.display = visible ? '' : 'none';
+  }
+
+  function toggleSidebarCollapsed() {
+    if (!dom.sidebar) return;
+    dom.sidebar.classList.toggle('collapsed');
+  }
+
+  // ── Rendering ────────────────────────────────────────────────────
+
+  function renderSidebar(sessions) {
+    dom.sidebarList.innerHTML = '';
+
+    if (sessions.length === 0) {
+      const hint = document.createElement('div');
+      hint.className = 'sidebar-empty-hint';
+      hint.textContent = 'No .jsonl sessions found in that folder.';
+      dom.sidebarList.appendChild(hint);
+      setSidebarVisible(true);
+      return;
+    }
+
+    // Group by project
+    const groups = new Map(); // key -> { name, sessions: [] }
+    for (const s of sessions) {
+      if (!groups.has(s.group)) {
+        groups.set(s.group, { name: s.group, sessions: [] });
+      }
+      groups.get(s.group).sessions.push(s);
+    }
+
+    // Sort sessions within each group, newest first
+    const groupList = Array.from(groups.values());
+    groupList.forEach(g => {
+      g.sessions.sort((a, b) => b.lastModified - a.lastModified);
+      g.mostRecent = g.sessions.length ? g.sessions[0].lastModified : 0;
+    });
+
+    // Sort groups by their most recent session, newest first
+    groupList.sort((a, b) => b.mostRecent - a.mostRecent);
+
+    // Only the group holding the single most-recently-modified session
+    // starts expanded (groupList[0], since it's sorted newest-first) —
+    // everything else starts collapsed so a long project list stays scannable.
+    groupList.forEach((g, index) => {
+      const groupEl = document.createElement('div');
+      groupEl.className = 'sidebar-group' + (index === 0 ? ' open' : '');
+
+      const groupHeader = document.createElement('button');
+      groupHeader.type = 'button';
+      groupHeader.className = 'sidebar-group-header';
+      const label = displayProjectName(g.name);
+      groupHeader.title = g.name;
+      groupHeader.appendChild(iconFromTemplate(CHEVRON_ICON_MARKUP));
+      groupHeader.appendChild(iconFromTemplate(FOLDER_ICON_MARKUP));
+      const nameEl = document.createElement('span');
+      nameEl.className = 'sidebar-group-name';
+      nameEl.textContent = label; // textContent — safe from HTML injection
+      groupHeader.appendChild(nameEl);
+      const badgeEl = document.createElement('span');
+      badgeEl.className = 'sidebar-group-badge';
+      badgeEl.textContent = String(g.sessions.length);
+      groupHeader.appendChild(badgeEl);
+      groupHeader.addEventListener('click', () => {
+        groupEl.classList.toggle('open');
+      });
+      groupEl.appendChild(groupHeader);
+
+      const sessionsOuter = document.createElement('div');
+      sessionsOuter.className = 'sidebar-group-sessions';
+      const sessionsInner = document.createElement('div');
+      sessionsInner.className = 'sidebar-group-sessions-inner';
+
+      for (const s of g.sessions) {
+        const item = document.createElement('div');
+        item.className = 'sidebar-item';
+        item.dataset.sessionId = s.id;
+
+        const titleEl = document.createElement('div');
+        titleEl.className = 'sidebar-item-title';
+        titleEl.textContent = s.title; // textContent — safe from HTML injection
+        titleEl.title = s.title;
+
+        const metaEl = document.createElement('div');
+        metaEl.className = 'sidebar-item-meta';
+        const dateSpan = document.createElement('span');
+        dateSpan.className = 'sidebar-item-date';
+        dateSpan.textContent = formatDate(s.lastModified);
+        const sizeSpan = document.createElement('span');
+        sizeSpan.className = 'sidebar-item-size';
+        sizeSpan.textContent = formatSize(s.size);
+        metaEl.appendChild(dateSpan);
+        metaEl.appendChild(sizeSpan);
+
+        item.appendChild(titleEl);
+        item.appendChild(metaEl);
+
+        item.addEventListener('click', () => selectSession(s, item));
+
+        sessionsInner.appendChild(item);
+      }
+
+      sessionsOuter.appendChild(sessionsInner);
+      groupEl.appendChild(sessionsOuter);
+      dom.sidebarList.appendChild(groupEl);
+    });
+
+    setSidebarVisible(true);
+  }
+
+  async function selectSession(session, itemEl) {
+    const V = window.JSONLViewer;
+    try {
+      setActiveItem(itemEl);
+      if (V.App && typeof V.App.showLoading === 'function') V.App.showLoading();
+      const file = await session.handle.getFile();
+      const text = await file.text();
+      if (V.App && typeof V.App.loadText === 'function') {
+        V.App.loadText(text, file.name);
+      }
+    } catch (err) {
+      console.error('[FileBrowser] Failed to open session:', err);
+      showToast('Failed to open session: ' + (err && err.message ? err.message : 'unknown error'), 'error');
+    }
+  }
+
+  // ── Scan + build session list ───────────────────────────────────
+
+  async function scanAndRender(rootHandle) {
+    let matches = [];
+    try {
+      await scanDirectory(rootHandle, 1, [], matches);
+    } catch (err) {
+      console.error('[FileBrowser] Scan failed:', err);
+      showToast('Failed to scan folder: ' + (err && err.message ? err.message : 'unknown error'), 'error');
+      return;
+    }
+
+    if (matches.length === 0) {
+      showToast('No .jsonl files found in that folder (searched 3 levels deep).', 'error');
+      return;
+    }
+
+    const sessions = [];
+    for (let i = 0; i < matches.length; i++) {
+      const m = matches[i];
+      let file;
+      try {
+        file = await m.handle.getFile();
+      } catch (e) {
+        console.warn('[FileBrowser] Skipping unreadable file', m.handle.name, e);
+        continue;
+      }
+
+      const group = m.pathParts.length === 0 ? rootHandle.name : m.pathParts[0];
+      let title = null;
+      try {
+        title = await computeTitle(file);
+      } catch (e) {
+        title = null;
+      }
+      if (!title) title = file.name.replace(/\.jsonl$/i, '');
+
+      sessions.push({
+        id: group + '/' + m.pathParts.join('/') + '/' + file.name,
+        handle: m.handle,
+        name: file.name,
+        size: file.size,
+        lastModified: file.lastModified,
+        group: group,
+        title: title,
+      });
+    }
+
+    renderSidebar(sessions);
+  }
+
+  // ── Open folder entry point ─────────────────────────────────────
+
+  async function openFolder() {
+    if (typeof window.showDirectoryPicker !== 'function') {
+      showToast('Opening a folder needs Chrome or Edge.', 'error');
+      return;
+    }
+
+    let dirHandle;
+    try {
+      dirHandle = await window.showDirectoryPicker();
+    } catch (err) {
+      if (err && err.name === 'AbortError') return; // user cancelled — stay silent
+      console.error('[FileBrowser] Directory pick failed:', err);
+      showToast('Could not open folder: ' + (err && err.message ? err.message : 'unknown error'), 'error');
+      return;
+    }
+
+    clearActive();
+    await scanAndRender(dirHandle);
+  }
+
+  // ── Init ─────────────────────────────────────────────────────────
+
+  function init() {
+    cacheDom();
+
+    if (dom.btnOpenFolder) dom.btnOpenFolder.addEventListener('click', openFolder);
+    if (dom.btnOpenFolderEmpty) dom.btnOpenFolderEmpty.addEventListener('click', openFolder);
+    if (dom.btnSidebarToggle) dom.btnSidebarToggle.addEventListener('click', toggleSidebarCollapsed);
+  }
+
+  window.JSONLViewer = window.JSONLViewer || {};
+  window.JSONLViewer.FileBrowser = {
+    init: init,
+    clearActive: clearActive,
+  };
+})();
+
+</script>
+<script>
+/**
+ * Main application controller.
+ * Wires together parser, renderer, search, export, and theme.
+ */
+(function () {
+  'use strict';
+
+  const V = window.JSONLViewer;
+
+  // ── State ─────────────────────────────────────────────────────────
+  let currentParsed = null;   // Result from Parser.parse()
+  let searchEngine = null;    // SearchEngine instance
+  let pendingExportFormat = null;  // Format selected for export (before filter modal)
+
+  // ── DOM refs ──────────────────────────────────────────────────────
+  const dom = {};
+  function cacheDom() {
+    dom.emptyState = document.getElementById('emptyState');
+    dom.loadingState = document.getElementById('loadingState');
+    dom.chatContainer = document.getElementById('chatContainer');
+    dom.chatMessages = document.getElementById('chatMessages');
+    dom.sessionBar = document.getElementById('sessionBar');
+    dom.sessionModel = document.getElementById('sessionModel');
+    dom.sessionStats = document.getElementById('sessionStats');
+    dom.sessionFile = document.getElementById('sessionFile');
+    dom.fileInput = document.getElementById('fileInput');
+    dom.btnUpload = document.getElementById('btnUpload');
+    dom.btnUploadEmpty = document.getElementById('btnUploadEmpty');
+    dom.btnExport = document.getElementById('btnExport');
+    dom.exportMenu = document.getElementById('exportMenu');
+    dom.btnTheme = document.getElementById('btnTheme');
+    dom.searchContainer = document.getElementById('searchContainer');
+    dom.searchInput = document.getElementById('searchInput');
+    dom.searchMeta = document.getElementById('searchMeta');
+    dom.searchPrev = document.getElementById('searchPrev');
+    dom.searchNext = document.getElementById('searchNext');
+    dom.searchClear = document.getElementById('searchClear');
+    dom.toastContainer = document.getElementById('toastContainer');
+    dom.exportFilterModal = document.getElementById('exportFilterModal');
+    dom.exportFormatLabel = document.getElementById('exportFormatLabel');
+    dom.btnExportConfirm = document.getElementById('btnExportConfirm');
+    dom.btnExportCancel = document.getElementById('btnExportCancel');
+    dom.btnPresetAll = document.getElementById('btnPresetAll');
+    dom.btnPresetConvo = document.getElementById('btnPresetConvo');
+  }
+
+  // ── UI State Helpers ──────────────────────────────────────────────
+
+  /**
+   * Reset the search UI back to its empty state (input, meta label,
+   * prev/next buttons, clear button). Does not touch the search engine.
+   */
+  function resetSearchUI() {
+    dom.searchInput.value = '';
+    dom.searchMeta.textContent = '';
+    dom.searchPrev.disabled = true;
+    dom.searchNext.disabled = true;
+    dom.searchClear.style.display = 'none';
+  }
+
+  function showEmpty() {
+    dom.emptyState.style.display = '';
+    dom.loadingState.style.display = 'none';
+    dom.chatContainer.style.display = 'none';
+    dom.sessionBar.style.display = 'none';
+    dom.btnExport.disabled = true;
+    dom.searchInput.disabled = true;
+    resetSearchUI();
+  }
+
+  function showLoading() {
+    dom.emptyState.style.display = 'none';
+    dom.loadingState.style.display = '';
+    dom.chatContainer.style.display = 'none';
+    dom.sessionBar.style.display = 'none';
+  }
+
+  function showChat() {
+    dom.emptyState.style.display = 'none';
+    dom.loadingState.style.display = 'none';
+    dom.chatContainer.style.display = '';
+    dom.sessionBar.style.display = '';
+    dom.btnExport.disabled = false;
+    dom.searchInput.disabled = false;
+  }
+
+  function updateSessionBar(filename) {
+    if (!currentParsed) return;
+
+    const models = currentParsed.models ? [...currentParsed.models] : [];
+    dom.sessionModel.textContent = models.length > 0
+      ? models.map(m => {
+          // Shorten model names for display
+          return m.replace('claude-', '').replace(/-\d{8}$/, '');
+        }).join(', ')
+      : 'Unknown model';
+
+    const tokens = currentParsed.totalTokens || 0;
+    if (tokens > 1_000_000) {
+      dom.sessionStats.textContent = `${(tokens / 1_000_000).toFixed(1)}M tokens`;
+    } else if (tokens > 1_000) {
+      dom.sessionStats.textContent = `${(tokens / 1_000).toFixed(0)}k tokens`;
+    } else if (tokens > 0) {
+      dom.sessionStats.textContent = `${tokens} tokens`;
+    }
+
+    dom.sessionStats.textContent += ` · ${currentParsed.turns.length} turns`;
+
+    if (filename) {
+      dom.sessionFile.textContent = filename;
+    }
+  }
+
+  function showToast(message, type) {
+    if (type === void 0) type = '';
+    const toast = document.createElement('div');
+    toast.className = 'toast ' + type;
+    toast.textContent = message;
+    dom.toastContainer.appendChild(toast);
+    setTimeout(() => {
+      if (toast.parentNode) toast.parentNode.removeChild(toast);
+    }, 3000);
+  }
+
+  // ── File Loading ──────────────────────────────────────────────────
+
+  /**
+   * Load a file picked via the file input or drag & drop.
+   * Reads it with FileReader, then hands the text off to loadText().
+   */
+  function loadFile(file) {
+    if (!file) return;
+
+    // Validate extension
+    if (!file.name.toLowerCase().endsWith('.jsonl')) {
+      showToast('Please select a .jsonl file', 'error');
+      return;
+    }
+
+    // This is a non-sidebar load — clear any highlighted session in the
+    // file browser sidebar so it doesn't look stale/misleading.
+    if (V.FileBrowser && typeof V.FileBrowser.clearActive === 'function') {
+      V.FileBrowser.clearActive();
+    }
+
+    showLoading();
+
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      try {
+        const text = e.target.result;
+        loadText(text, file.name);
+      } catch (err) {
+        console.error('Read error:', err);
+        showEmpty();
+        showToast('Failed to read file: ' + err.message, 'error');
+      }
+    };
+
+    reader.onerror = function () {
+      showEmpty();
+      showToast('Failed to read file', 'error');
+    };
+
+    reader.readAsText(file);
+  }
+
+  /**
+   * Parse and render already-in-memory JSONL text (shared by the
+   * file-input/drag-drop path and the file-browser sidebar path).
+   */
+  function loadText(text, filename) {
+    showLoading();
+
+    // Use setTimeout to let the loading state render before heavy parsing
+    setTimeout(() => {
+      try {
+        const parsed = V.Parser.parse(text);
+        currentParsed = parsed;
+
+        if (parsed.turns.length === 0) {
+          showEmpty();
+          const rawCount = parsed.rawEvents ? parsed.rawEvents.length : 0;
+          showToast('No conversation messages found. ' + rawCount + ' raw events parsed — check browser console (F12) for debug info.', 'error');
+          return;
+        }
+
+        // Initialize search
+        searchEngine = new V.SearchEngine();
+        searchEngine.setTurns(parsed.turns);
+
+        // Render
+        V.Renderer.renderConversation(parsed.turns);
+        showChat();
+        updateSessionBar(filename);
+
+        // Scroll to top
+        dom.chatContainer.scrollTop = 0;
+
+        // Clear search
+        resetSearchUI();
+
+        showToast(`Loaded ${parsed.turns.length} turns · ${[...parsed.models].join(', ')}`);
+      } catch (err) {
+        console.error('Parse error:', err);
+        showEmpty();
+        showToast('Failed to parse conversation: ' + err.message, 'error');
+      }
+    }, 50);
+  }
+
+  function openFileDialog() {
+    dom.fileInput.click();
+  }
+
+  // ── Search ────────────────────────────────────────────────────────
+  function doSearch() {
+    if (!searchEngine || !currentParsed) return;
+
+    const query = dom.searchInput.value.trim();
+
+    if (query.length < 2) {
+      // Clear highlights
+      V.Renderer.clearHighlights();
+      dom.searchMeta.textContent = '';
+      dom.searchPrev.disabled = true;
+      dom.searchNext.disabled = true;
+      dom.searchClear.style.display = 'none';
+      return;
+    }
+
+    dom.searchClear.style.display = '';
+    searchEngine.search(query);
+
+    if (searchEngine.hasResults()) {
+      dom.searchMeta.textContent = `${searchEngine.currentIndex + 1}/${searchEngine.results.length}`;
+      dom.searchPrev.disabled = false;
+      dom.searchNext.disabled = false;
+
+      // Navigate to first result
+      const result = searchEngine.current();
+      if (result) {
+        V.Renderer.scrollToTurn(result.turnIndex);
+        // Apply highlights after scroll
+        setTimeout(() => {
+          V.Renderer.highlightSearch(query, searchEngine.currentIndex);
+        }, 100);
+      }
+    } else {
+      dom.searchMeta.textContent = '0/0';
+      dom.searchPrev.disabled = true;
+      dom.searchNext.disabled = true;
+      V.Renderer.clearHighlights();
+    }
+  }
+
+  function searchNext() {
+    if (!searchEngine || !searchEngine.hasResults()) return;
+
+    const result = searchEngine.next();
+    if (result) {
+      V.Renderer.scrollToTurn(result.turnIndex);
+      dom.searchMeta.textContent = `${searchEngine.currentIndex + 1}/${searchEngine.results.length}`;
+      setTimeout(() => {
+        V.Renderer.highlightSearch(searchEngine.query, searchEngine.currentIndex);
+      }, 100);
+    }
+  }
+
+  function searchPrev() {
+    if (!searchEngine || !searchEngine.hasResults()) return;
+
+    const result = searchEngine.prev();
+    if (result) {
+      V.Renderer.scrollToTurn(result.turnIndex);
+      dom.searchMeta.textContent = `${searchEngine.currentIndex + 1}/${searchEngine.results.length}`;
+      setTimeout(() => {
+        V.Renderer.highlightSearch(searchEngine.query, searchEngine.currentIndex);
+      }, 100);
+    }
+  }
+
+  function clearSearch() {
+    resetSearchUI();
+    V.Renderer.clearHighlights();
+    if (searchEngine) searchEngine.clear();
+    dom.searchInput.focus();
+  }
+
+  // ── Export ────────────────────────────────────────────────────────
+  function toggleExportMenu() {
+    if (!currentParsed) {
+      showToast('No conversation loaded', 'error');
+      return;
+    }
+    dom.exportMenu.classList.toggle('open');
+  }
+
+  /**
+   * User clicked a format in the dropdown. Show the filter modal.
+   */
+  function doExport(format) {
+    dom.exportMenu.classList.remove('open');
+
+    if (!currentParsed) {
+      showToast('No conversation loaded', 'error');
+      return;
+    }
+
+    pendingExportFormat = format;
+
+    var formatLabels = { md: 'Markdown (.md)', pdf: 'PDF (.pdf)', dxt: 'DXT (.dxt)' };
+    dom.exportFormatLabel.textContent = formatLabels[format] || format;
+
+    if (dom.exportFilterModal) {
+      dom.exportFilterModal.style.display = '';
+    } else {
+      showToast('Export error: modal not found', 'error');
+    }
+  }
+
+  /**
+   * Preset: check every filter checkbox ("Everything").
+   */
+  function applyPresetAll() {
+    var checkboxes = dom.exportFilterModal.querySelectorAll('input[data-filter]');
+    checkboxes.forEach(function (cb) { cb.checked = true; });
+  }
+
+  /**
+   * Preset: check only "text" and uncheck the rest ("Conversation only").
+   */
+  function applyPresetConversationOnly() {
+    var checkboxes = dom.exportFilterModal.querySelectorAll('input[data-filter]');
+    checkboxes.forEach(function (cb) { cb.checked = (cb.dataset.filter === 'text'); });
+  }
+
+  /**
+   * Read the filter checkboxes and return a filters config object.
+   */
+  function readExportFilters() {
+    var checkboxes = dom.exportFilterModal.querySelectorAll('input[data-filter]');
+    var filters = {};
+    for (var i = 0; i < checkboxes.length; i++) {
+      var cb = checkboxes[i];
+      filters[cb.dataset.filter] = cb.checked;
+    }
+    return filters;
+  }
+
+  /**
+   * Execute the pending export with the selected filters.
+   */
+  function confirmExport() {
+    // Hide modal safely
+    if (dom.exportFilterModal) {
+      dom.exportFilterModal.style.display = 'none';
+    }
+
+    if (!pendingExportFormat || !currentParsed) {
+      return;
+    }
+
+    var data = V.Parser.toExportData(currentParsed);
+    var filters = readExportFilters();
+
+    try {
+      switch (pendingExportFormat) {
+        case 'md':
+          V.Exporter.exportMarkdown(data, filters);
+          showToast('Exported as Markdown');
+          break;
+        case 'pdf':
+          V.Exporter.exportPDF(data, filters);
+          showToast('Opening print dialog for PDF export…');
+          break;
+        case 'dxt':
+          V.Exporter.exportDXT(data, filters);
+          showToast('Exported as DXT');
+          break;
+        default:
+          showToast('Unknown export format', 'error');
+      }
+    } catch (err) {
+      console.error('[Export] Error:', err);
+      showToast('Export failed: ' + err.message, 'error');
+    }
+
+    pendingExportFormat = null;
+  }
+
+  /**
+   * Cancel the export filter modal.
+   */
+  function cancelExport() {
+    if (dom.exportFilterModal) {
+      dom.exportFilterModal.style.display = 'none';
+    }
+    pendingExportFormat = null;
+  }
+
+  // ── Drag & Drop ───────────────────────────────────────────────────
+  function setupDragDrop() {
+    const main = document.querySelector('.app-main');
+
+    ['dragenter', 'dragover'].forEach(evt => {
+      main.addEventListener(evt, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        main.classList.add('drag-over');
+      });
+    });
+
+    ['dragleave', 'drop'].forEach(evt => {
+      main.addEventListener(evt, (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        main.classList.remove('drag-over');
+      });
+    });
+
+    main.addEventListener('drop', (e) => {
+      const files = e.dataTransfer.files;
+      if (files.length > 0) {
+        loadFile(files[0]);
+      }
+    });
+
+    // Also allow drop on the empty state
+    dom.emptyState.addEventListener('click', (e) => {
+      // Only open file dialog if clicking the empty state (not its buttons)
+      if (e.target === dom.emptyState || e.target.closest('.empty-icon') || e.target.tagName === 'H2' || e.target.tagName === 'P') {
+        openFileDialog();
+      }
+    });
+  }
+
+  // ── Keyboard Shortcuts ────────────────────────────────────────────
+  function setupKeyboard() {
+    document.addEventListener('keydown', (e) => {
+      // Ctrl/Cmd + K → focus search
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        dom.searchInput.focus();
+        return;
+      }
+
+      // Ctrl/Cmd + O → open file
+      if ((e.ctrlKey || e.metaKey) && e.key === 'o') {
+        e.preventDefault();
+        openFileDialog();
+        return;
+      }
+
+      // Escape → clear search (unless the export filter modal is open —
+      // its own Escape handler takes priority and closes it instead)
+      if (e.key === 'Escape' && document.activeElement === dom.searchInput) {
+        if (dom.exportFilterModal && dom.exportFilterModal.style.display !== 'none') {
+          return;
+        }
+        clearSearch();
+        return;
+      }
+
+      // Enter in search → next result
+      if (e.key === 'Enter' && document.activeElement === dom.searchInput) {
+        if (e.shiftKey) {
+          e.preventDefault();
+          searchPrev();
+        } else {
+          e.preventDefault();
+          searchNext();
+        }
+        return;
+      }
+    });
+  }
+
+  // ── Event Bindings ────────────────────────────────────────────────
+  function bindEvents() {
+    // File input
+    dom.fileInput.addEventListener('change', (e) => {
+      if (e.target.files.length > 0) {
+        loadFile(e.target.files[0]);
+      }
+    });
+    dom.btnUpload.addEventListener('click', openFileDialog);
+    dom.btnUploadEmpty.addEventListener('click', openFileDialog);
+
+    // Export
+    dom.btnExport.addEventListener('click', toggleExportMenu);
+    dom.exportMenu.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', () => doExport(btn.dataset.format));
+    });
+
+    // Close export menu on outside click
+    document.addEventListener('click', (e) => {
+      if (!dom.exportMenu.contains(e.target) && !dom.btnExport.contains(e.target)) {
+        dom.exportMenu.classList.remove('open');
+      }
+    });
+
+    // Export filter modal
+    dom.btnExportConfirm.addEventListener('click', confirmExport);
+    dom.btnExportCancel.addEventListener('click', cancelExport);
+    if (dom.btnPresetAll) dom.btnPresetAll.addEventListener('click', applyPresetAll);
+    if (dom.btnPresetConvo) dom.btnPresetConvo.addEventListener('click', applyPresetConversationOnly);
+
+    // Close modal on overlay click
+    dom.exportFilterModal.addEventListener('click', function (e) {
+      if (e.target === dom.exportFilterModal) cancelExport();
+    });
+
+    // Close modal on Escape
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && dom.exportFilterModal.style.display !== 'none') {
+        cancelExport();
+      }
+    });
+
+    // Search
+    dom.searchInput.addEventListener('input', doSearch);
+    dom.searchNext.addEventListener('click', searchNext);
+    dom.searchPrev.addEventListener('click', searchPrev);
+    dom.searchClear.addEventListener('click', clearSearch);
+
+    // Theme
+    V.Theme.init();
+
+    // File browser (folder open + sidebar) — optional module
+    if (V.FileBrowser && typeof V.FileBrowser.init === 'function') {
+      V.FileBrowser.init();
+    }
+
+    // Drag & drop
+    setupDragDrop();
+
+    // Keyboard
+    setupKeyboard();
+  }
+
+  // ── Init ──────────────────────────────────────────────────────────
+  function init() {
+    cacheDom();
+    bindEvents();
+    showEmpty();
+
+    // Check if a file was dropped on the window before init
+    // (handled by drag-drop setup)
+  }
+
+  // Boot when DOM is ready
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+  // Public surface used by js/filebrowser.js to hand off text read via the
+  // File System Access API (which has no FileReader step of its own).
+  window.JSONLViewer.App = {
+    loadText: loadText,
+    showLoading: showLoading,
+  };
+})();
+
+</script>
+</body>
+</html>
