@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Currency Converter</title>		
+    <title>Live Currency Converter</title>
+    <meta name="description" content="Live currency converter for INR, USD, EUR and 150+ other currencies.">
     <link rel="icon" href="https://media.istockphoto.com/id/1214630488/photo/currency-converter-concept.jpg?s=612x612&w=0&k=20&c=HI66nJqgsj6MxcjvoOqNNxHJX-6UXKv58h24jW_zr0g=" type="image/png" />
 
     <style>
@@ -16,7 +17,7 @@
         body {
             background: linear-gradient(135deg, #000000 0%, #0f1419 30%, #1a2332 70%, #000814 100%);
             min-height: 100vh;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             color: #ffffff;
             overflow-x: hidden;
         }
@@ -27,7 +28,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: 
+            background:
                 radial-gradient(circle at 15% 85%, rgba(0, 255, 127, 0.15) 0%, transparent 50%),
                 radial-gradient(circle at 85% 15%, rgba(30, 144, 255, 0.2) 0%, transparent 50%),
                 radial-gradient(circle at 50% 50%, rgba(0, 100, 200, 0.1) 0%, transparent 70%);
@@ -40,11 +41,42 @@
             50% { opacity: 1; transform: scale(1.05); }
         }
 
+        /* Shared site navigation */
+        .site-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            padding: 20px 20px 0;
+        }
+
+        .site-nav a {
+            color: rgba(160, 190, 230, 0.85);
+            text-decoration: none;
+            padding: 7px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(30, 144, 255, 0.25);
+            font-size: 0.9rem;
+            transition: all 0.2s ease;
+        }
+
+        .site-nav a:hover {
+            color: #fff;
+            border-color: rgba(0, 255, 127, 0.5);
+        }
+
+        .site-nav a[aria-current="page"] {
+            color: #000;
+            background: linear-gradient(135deg, #1e90ff 0%, #00ff7f 100%);
+            border-color: transparent;
+            font-weight: 600;
+        }
+
         .container {
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            min-height: calc(100vh - 60px);
             padding: 20px;
         }
 
@@ -55,26 +87,14 @@
             border-radius: 24px;
             padding: 40px;
             width: 100%;
-            max-width: 500px;
-            box-shadow: 
+            max-width: 520px;
+            box-shadow:
                 0 20px 40px rgba(0, 0, 0, 0.7),
                 0 0 20px rgba(30, 144, 255, 0.2),
                 inset 0 1px 0 rgba(0, 255, 127, 0.1);
-            transition: all 0.4s ease;
+            transition: border-color 0.4s ease, box-shadow 0.4s ease;
             animation: slideUp 0.8s ease-out;
             position: relative;
-        }
-
-        .converter-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: linear-gradient(145deg, rgba(0, 255, 127, 0.05) 0%, rgba(30, 144, 255, 0.05) 100%);
-            border-radius: 22px;
-            z-index: -1;
         }
 
         @keyframes slideUp {
@@ -89,9 +109,8 @@
         }
 
         .converter-card:hover {
-            transform: translateY(-8px);
             border-color: rgba(0, 255, 127, 0.5);
-            box-shadow: 
+            box-shadow:
                 0 30px 60px rgba(0, 0, 0, 0.8),
                 0 0 30px rgba(0, 255, 127, 0.3),
                 inset 0 1px 0 rgba(0, 255, 127, 0.2);
@@ -99,7 +118,7 @@
 
         .header {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 35px;
         }
 
         .title {
@@ -110,17 +129,19 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
             margin-bottom: 8px;
-            text-shadow: 0 0 20px rgba(30, 144, 255, 0.3);
         }
 
         .subtitle {
             color: rgba(0, 255, 127, 0.8);
-            font-size: 1.1rem;
+            font-size: 1rem;
             font-weight: 500;
         }
 
+        .subtitle.delayed { color: #ffb347; }
+        .subtitle.offline { color: #ff6b6b; }
+
         .currency-section {
-            margin-bottom: 30px;
+            margin-bottom: 10px;
         }
 
         .currency-label {
@@ -147,26 +168,34 @@
         .input-group:focus-within {
             border-color: rgba(0, 255, 127, 0.6);
             box-shadow: 0 0 20px rgba(0, 255, 127, 0.2);
-            background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(15, 25, 35, 0.9) 100%);
         }
 
         .currency-flag {
-            padding: 0 20px;
+            padding: 0 4px 0 16px;
             font-size: 1.5rem;
-            display: flex;
-            align-items: center;
-            background: linear-gradient(135deg, rgba(30, 144, 255, 0.1) 0%, rgba(0, 255, 127, 0.05) 100%);
-            border-right: 1px solid rgba(30, 144, 255, 0.3);
-            cursor: pointer;
-            transition: all 0.3s ease;
         }
 
-        .currency-flag:hover {
-            background: linear-gradient(135deg, rgba(30, 144, 255, 0.2) 0%, rgba(0, 255, 127, 0.1) 100%);
+        .currency-select {
+            background: transparent;
+            border: none;
+            outline: none;
+            color: rgba(0, 255, 127, 0.9);
+            font-weight: 600;
+            font-size: 0.95rem;
+            padding: 20px 8px;
+            cursor: pointer;
+            max-width: 110px;
+            border-right: 1px solid rgba(30, 144, 255, 0.3);
+        }
+
+        .currency-select option {
+            background: #0f1419;
+            color: #fff;
         }
 
         .currency-input {
             flex: 1;
+            min-width: 0;
             background: transparent;
             border: none;
             outline: none;
@@ -174,6 +203,8 @@
             font-size: 1.2rem;
             padding: 20px;
             font-weight: 500;
+            text-align: right;
+            font-variant-numeric: tabular-nums;
         }
 
         .currency-input::placeholder {
@@ -184,22 +215,21 @@
             color: rgba(0, 255, 127, 0.9);
         }
 
-        .currency-code {
-            padding: 0 20px;
-            color: rgba(0, 255, 127, 0.8);
-            font-weight: 600;
-            font-size: 0.9rem;
+        .currency-name {
+            font-size: 0.8rem;
+            color: rgba(160, 190, 230, 0.6);
+            margin-top: 6px;
+            padding-left: 4px;
         }
 
         .swap-button {
             display: flex;
             justify-content: center;
-            margin: 20px 0;
+            margin: 15px 0;
         }
 
         .swap-btn {
             background: linear-gradient(135deg, #1e90ff 0%, #00ff7f 100%);
-            border: none;
             width: 55px;
             height: 55px;
             border-radius: 50%;
@@ -221,9 +251,41 @@
             background: linear-gradient(135deg, #00ff7f 0%, #1e90ff 100%);
         }
 
+        .rate-line {
+            text-align: center;
+            margin-top: 20px;
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 0.95rem;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .badge {
+            display: inline-block;
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 999px;
+            margin-left: 6px;
+            vertical-align: middle;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.live {
+            background: rgba(0, 255, 127, 0.15);
+            color: #00ff7f;
+            border: 1px solid rgba(0, 255, 127, 0.4);
+        }
+
+        .badge.daily {
+            background: rgba(30, 144, 255, 0.15);
+            color: #6cb6ff;
+            border: 1px solid rgba(30, 144, 255, 0.4);
+        }
+
         .rates-section {
-            margin-top: 40px;
-            padding-top: 30px;
+            margin-top: 30px;
+            padding-top: 25px;
             border-top: 2px solid rgba(30, 144, 255, 0.2);
         }
 
@@ -245,6 +307,7 @@
             border-radius: 12px;
             margin-bottom: 10px;
             transition: all 0.3s ease;
+            cursor: pointer;
         }
 
         .rate-item:hover {
@@ -263,6 +326,22 @@
             color: #00ff7f;
             font-weight: 700;
             font-size: 1.1rem;
+            font-variant-numeric: tabular-nums;
+            border-radius: 6px;
+            padding: 0 4px;
+        }
+
+        .tick-up { animation: tickUp 1.2s ease-out; }
+        .tick-down { animation: tickDown 1.2s ease-out; }
+
+        @keyframes tickUp {
+            0% { background: rgba(0, 255, 127, 0.35); }
+            100% { background: transparent; }
+        }
+
+        @keyframes tickDown {
+            0% { background: rgba(255, 80, 80, 0.35); }
+            100% { background: transparent; }
         }
 
         .loading {
@@ -279,7 +358,8 @@
             padding: 15px;
             border-radius: 12px;
             text-align: center;
-            margin-top: 20px;
+            margin-bottom: 15px;
+            font-size: 0.9rem;
         }
 
         .status-indicator {
@@ -287,7 +367,7 @@
             width: 8px;
             height: 8px;
             border-radius: 50%;
-            background: #00ff7f;
+            background: currentColor;
             margin-right: 8px;
             animation: blink 2s infinite;
         }
@@ -302,12 +382,16 @@
             color: rgba(30, 144, 255, 0.6);
             font-size: 0.8rem;
             margin-top: 15px;
+            line-height: 1.6;
+        }
+
+        .last-updated a {
+            color: rgba(30, 144, 255, 0.8);
         }
 
         @media (max-width: 600px) {
             .converter-card {
-                padding: 30px 20px;
-                margin: 10px;
+                padding: 30px 18px;
             }
 
             .title {
@@ -316,45 +400,67 @@
 
             .currency-input {
                 font-size: 1.1rem;
-                padding: 18px;
+                padding: 18px 14px;
             }
+
+            .currency-flag {
+                padding-left: 12px;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .background-animation, .status-indicator, .tick-up, .tick-down, .converter-card { animation: none; }
+            .swap-btn:hover { transform: none; }
+            .rate-item:hover { transform: none; }
         }
     </style>
 </head>
 <body>
     <div class="background-animation"></div>
-    
+
+    <nav class="site-nav">
+        <a href="./">🥇 Gold &amp; Silver</a>
+        <a href="currency.html" aria-current="page">💱 Currency</a>
+        <a href="yt-dlp.html">🎬 yt-dlp Builder</a>
+        <a href="json.html">💬 Claude Viewer</a>
+    </nav>
+
     <div class="container">
         <div class="converter-card">
             <div class="header">
                 <h1 class="title">Currency Exchange</h1>
-                <p class="subtitle"><span class="status-indicator"></span>Live Rates • INR, USD & EUR</p>
+                <p class="subtitle" id="subtitle" role="status"><span class="status-indicator"></span><span id="statusText">Connecting…</span></p>
             </div>
 
             <div class="currency-section">
-                <label class="currency-label">From</label>
+                <label class="currency-label" for="fromAmount">From</label>
                 <div class="input-group">
-                    <div class="currency-flag" id="fromFlag">🇮🇳</div>
-                    <input type="number" class="currency-input" id="fromAmount" placeholder="Enter amount" value="100" min="0" step="0.01">
-                    <div class="currency-code" id="fromCode">INR</div>
+                    <span class="currency-flag" id="fromFlag">🇮🇳</span>
+                    <select class="currency-select" id="fromCurrency" aria-label="From currency"></select>
+                    <input type="number" class="currency-input" id="fromAmount" placeholder="Enter amount" value="100" min="0" step="any" inputmode="decimal">
                 </div>
+                <div class="currency-name" id="fromName"></div>
             </div>
 
             <div class="swap-button">
-                <button class="swap-btn" onclick="swapCurrencies()">⇅</button>
+                <button class="swap-btn" id="swapBtn" title="Swap currencies" aria-label="Swap currencies">⇅</button>
             </div>
 
             <div class="currency-section">
-                <label class="currency-label">To</label>
+                <label class="currency-label" for="toAmount">To</label>
                 <div class="input-group">
-                    <div class="currency-flag" id="toFlag">🇺🇸</div>
-                    <input type="number" class="currency-input" id="toAmount" placeholder="Converted amount" readonly>
-                    <div class="currency-code" id="toCode">USD</div>
+                    <span class="currency-flag" id="toFlag">🇺🇸</span>
+                    <select class="currency-select" id="toCurrency" aria-label="To currency"></select>
+                    <input type="text" class="currency-input" id="toAmount" placeholder="Converted amount" readonly>
                 </div>
+                <div class="currency-name" id="toName"></div>
             </div>
+
+            <div class="rate-line" id="rateLine"></div>
 
             <div class="rates-section">
                 <h3 class="rates-title">Live Exchange Rates</h3>
+                <div id="ratesError"></div>
                 <div id="ratesContainer">
                     <div class="loading">Fetching live exchange rates...</div>
                 </div>
@@ -364,233 +470,357 @@
     </div>
 
     <script>
-        const currencies = {
-            INR: { flag: '🇮🇳', name: 'Indian Rupee' },
-            USD: { flag: '🇺🇸', name: 'US Dollar' },
-            EUR: { flag: '🇪🇺', name: 'Euro' }
-        };
-
-        let exchangeRates = {};
-        let fromCurrency = 'INR';
-        let toCurrency = 'USD';
-        let lastUpdateTime = null;
-
-        // Free API endpoints for exchange rates
-        const API_ENDPOINTS = [
-            'https://api.exchangerate-api.com/v4/latest/',
-            'https://api.freeforexapi.com/v1/latest?base=',
-            'https://api.exchangerate.host/latest?base='
+        // Daily rate table for every currency (base USD). Tried in order.
+        const DAILY_SOURCES = [
+            {
+                url: 'https://open.er-api.com/v6/latest/USD',
+                parse: (d) => d.result === 'success' && {
+                    rates: d.rates,
+                    date: new Date(d.time_last_update_unix * 1000).toISOString().slice(0, 10)
+                }
+            },
+            {
+                url: 'https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@latest/v1/currencies/usd.min.json',
+                parse: (d) => d.usd && { rates: upperKeys(d.usd), date: d.date }
+            },
+            {
+                url: 'https://latest.currency-api.pages.dev/v1/currencies/usd.min.json',
+                parse: (d) => d.usd && { rates: upperKeys(d.usd), date: d.date }
+            }
         ];
 
-        async function fetchExchangeRates() {
-            const container = document.getElementById('ratesContainer');
-            container.innerHTML = '<div class="loading">Fetching live exchange rates...</div>';
+        // Live rates (updated during the day). Returns USD -> code.
+        const LIVE_URL = (code) => `https://api.gold-api.com/price/XAU/${code}`;
+        const LIVE_POLL_MS = 30000;
+        const DAILY_REFRESH_MS = 60 * 60 * 1000;
+        const STALE_MS = 2 * 60 * 1000;
+        const QUICK_PAIRS = [['USD', 'INR'], ['EUR', 'INR'], ['GBP', 'INR'], ['EUR', 'USD']];
+        const STORAGE_KEY = 'currency-converter-v2';
 
+        const state = {
+            daily: null,          // { rates: {CODE: per USD}, date }
+            live: { USD: 1 },     // CODE -> per USD, from the live source
+            liveUnsupported: new Set(),
+            lastLive: 0,
+            lastDailyFetch: 0,
+            from: 'INR',
+            to: 'USD',
+            shownRates: {},
+            pollTimer: null,
+            error: null
+        };
+
+        const $ = (id) => document.getElementById(id);
+        const displayNames = (typeof Intl.DisplayNames === 'function')
+            ? new Intl.DisplayNames(['en'], { type: 'currency' }) : null;
+
+        function upperKeys(obj) {
+            const out = {};
+            for (const [k, v] of Object.entries(obj)) {
+                if (/^[a-z]{3}$/.test(k) && typeof v === 'number') out[k.toUpperCase()] = v;
+            }
+            return out;
+        }
+
+        function currencyName(code) {
+            try { return displayNames ? displayNames.of(code) : code; } catch { return code; }
+        }
+
+        // Flag emoji from the first two letters of the code (country code); EUR has its own flag.
+        function flagFor(code) {
+            if (code === 'EUR') return '🇪🇺';
+            if (/^X/.test(code)) return '🌐';
+            return String.fromCodePoint(...code.slice(0, 2).split('').map(c => 0x1F1A5 + c.charCodeAt(0)));
+        }
+
+        async function getJSON(url) {
+            const response = await fetch(url, { cache: 'no-store' });
+            if (!response.ok) throw new Error(url + ' returned HTTP ' + response.status);
+            return response.json();
+        }
+
+        // Rate as "units of code per 1 USD"; live value if we have one, otherwise daily.
+        function perUsd(code) {
+            if (state.live[code]) return { value: state.live[code], live: true };
+            if (state.daily && state.daily.rates[code]) return { value: state.daily.rates[code], live: false };
+            return null;
+        }
+
+        function rate(from, to) {
+            const a = perUsd(from);
+            const b = perUsd(to);
+            if (!a || !b) return null;
+            return { value: b.value / a.value, live: a.live && b.live };
+        }
+
+        function formatRate(n) {
+            if (n >= 100) return n.toFixed(2);
+            if (n >= 1) return n.toFixed(4);
+            return n.toPrecision(4);
+        }
+
+        function formatAmount(n, code) {
             try {
-                // Try to fetch rates for all three currencies
-                const promises = Object.keys(currencies).map(async (base) => {
-                    for (let endpoint of API_ENDPOINTS) {
-                        try {
-                            const response = await fetch(`${endpoint}${base}`);
-                            if (!response.ok) throw new Error('API unavailable');
-                            const data = await response.json();
-                            
-                            // Handle different API response formats
-                            const rates = data.rates || data.data || data;
-                            if (rates && typeof rates === 'object') {
-                                return { base, rates };
-                            }
-                        } catch (err) {
-                            console.log(`Failed to fetch from ${endpoint}${base}:`, err);
-                            continue;
-                        }
+                return new Intl.NumberFormat(code === 'INR' ? 'en-IN' : 'en-US', {
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: n !== 0 && Math.abs(n) < 1 ? 6 : 2
+                }).format(n);
+            } catch {
+                return n.toFixed(2);
+            }
+        }
+
+        function badge(live) {
+            return live
+                ? '<span class="badge live">Live</span>'
+                : '<span class="badge daily">Daily</span>';
+        }
+
+        async function loadDaily() {
+            for (const source of DAILY_SOURCES) {
+                try {
+                    const parsed = source.parse(await getJSON(source.url));
+                    if (parsed && parsed.rates && parsed.rates.INR) {
+                        state.daily = { rates: parsed.rates, date: parsed.date };
+                        state.lastDailyFetch = Date.now();
+                        state.error = null;
+                        try { localStorage.setItem(STORAGE_KEY + ':daily', JSON.stringify(state.daily)); } catch {}
+                        fillSelects();
+                        render();
+                        return;
                     }
-                    throw new Error(`No working API found for ${base}`);
-                });
-
-                const results = await Promise.all(promises);
-                
-                // Process the results
-                exchangeRates = {};
-                results.forEach(({ base, rates }) => {
-                    exchangeRates[base] = {};
-                    Object.keys(currencies).forEach(target => {
-                        if (target !== base && rates[target]) {
-                            exchangeRates[base][target] = rates[target];
-                        }
-                    });
-                });
-
-                lastUpdateTime = new Date();
-                updateRatesDisplay();
-                updateLastUpdatedTime();
-                convertCurrency();
-
-            } catch (error) {
-                console.error('Failed to fetch exchange rates:', error);
-                // Fallback to backup rates
-                await fetchBackupRates();
-            }
-        }
-
-        async function fetchBackupRates() {
-            try {
-                // Try a different free API as backup
-                const response = await fetch('https://api.exchangerate.host/latest?base=USD&symbols=INR,EUR');
-                const data = await response.json();
-                
-                if (data && data.rates) {
-                    // Manually calculate cross rates
-                    const usdToInr = data.rates.INR;
-                    const usdToEur = data.rates.EUR;
-                    
-                    exchangeRates = {
-                        USD: { INR: usdToInr, EUR: usdToEur },
-                        INR: { USD: 1 / usdToInr, EUR: usdToEur / usdToInr },
-                        EUR: { USD: 1 / usdToEur, INR: usdToInr / usdToEur }
-                    };
-                    
-                    lastUpdateTime = new Date();
-                    updateRatesDisplay();
-                    updateLastUpdatedTime();
-                    convertCurrency();
-                    return;
+                } catch (err) {
+                    console.warn('Rate source failed:', err.message);
                 }
-            } catch (err) {
-                console.error('Backup API also failed:', err);
             }
-
-            // Final fallback - use approximate rates
-            useFallbackRates();
+            // Every source failed: use the last rates this browser saved, and say so.
+            if (!state.daily) {
+                try {
+                    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY + ':daily'));
+                    if (saved && saved.rates) {
+                        state.daily = saved;
+                        state.error = 'Could not reach any rate service. Showing your last saved rates from ' + saved.date + '.';
+                        fillSelects();
+                        render();
+                        return;
+                    }
+                } catch {}
+                state.error = 'Could not reach any rate service. Please check your internet connection; the page will keep retrying.';
+                render();
+            }
         }
 
-        function useFallbackRates() {
-            const container = document.getElementById('ratesContainer');
-            
-            // Use approximate rates as last resort
-            exchangeRates = {
-                INR: { USD: 0.012, EUR: 0.011 },
-                USD: { INR: 83.15, EUR: 0.92 },
-                EUR: { INR: 90.45, USD: 1.09 }
-            };
-
-            container.innerHTML = `
-                <div class="error">
-                    Unable to fetch live rates. Showing approximate values.
-                    <br><small>Please check your internet connection and try refreshing the page.</small>
-                </div>
-            `;
-            
-            setTimeout(() => {
-                updateRatesDisplay();
-                convertCurrency();
-            }, 2000);
-
-            lastUpdateTime = new Date();
-            updateLastUpdatedTime();
+        function liveCodesNeeded() {
+            const codes = new Set([state.from, state.to]);
+            QUICK_PAIRS.forEach(([a, b]) => { codes.add(a); codes.add(b); });
+            codes.delete('USD');
+            return [...codes].filter(c => !state.liveUnsupported.has(c));
         }
 
-        function updateRatesDisplay() {
-            const container = document.getElementById('ratesContainer');
-            const currencyPairs = [
-                ['USD', 'INR'],
-                ['EUR', 'INR']
-                
-            ];
-
-            container.innerHTML = '';
-            
-            currencyPairs.forEach(([from, to]) => {
-                const rate = exchangeRates[from] && exchangeRates[from][to];
-                if (rate) {
-                    const rateItem = document.createElement('div');
-                    rateItem.className = 'rate-item';
-                    rateItem.innerHTML = `
-                        <span class="rate-pair">${currencies[from].flag} ${from}/${to}</span>
-                        <span class="rate-value">${rate.toFixed(4)}</span>
-                    `;
-                    container.appendChild(rateItem);
+        async function pollLive() {
+            const codes = liveCodesNeeded();
+            const results = await Promise.allSettled(codes.map(c => getJSON(LIVE_URL(c))));
+            let ok = 0;
+            results.forEach((res, i) => {
+                const code = codes[i];
+                if (res.status === 'fulfilled' && typeof res.value.exchangeRate === 'number' && res.value.exchangeRate > 0) {
+                    state.live[code] = res.value.exchangeRate;
+                    ok++;
+                } else if (res.status === 'rejected' && /HTTP 404/.test(res.reason.message)) {
+                    // The live source does not cover this currency; the daily rate is used instead.
+                    state.liveUnsupported.add(code);
+                    delete state.live[code];
                 }
             });
+            if (ok > 0 || codes.length === 0) state.lastLive = Date.now();
+            render();
         }
 
-        function updateLastUpdatedTime() {
-            const element = document.getElementById('lastUpdated');
-            if (lastUpdateTime) {
-                element.textContent = `Last updated: ${lastUpdateTime.toLocaleTimeString()}`;
+        function fillSelects() {
+            const codes = Object.keys(state.daily.rates)
+                .filter(c => /^[A-Z]{3}$/.test(c))
+                .sort();
+            for (const id of ['fromCurrency', 'toCurrency']) {
+                const select = $(id);
+                const current = id === 'fromCurrency' ? state.from : state.to;
+                select.innerHTML = '';
+                for (const code of codes) {
+                    const opt = document.createElement('option');
+                    opt.value = code;
+                    opt.textContent = code + ' – ' + currencyName(code);
+                    select.appendChild(opt);
+                }
+                if (!codes.includes(current)) {
+                    if (id === 'fromCurrency') state.from = 'INR'; else state.to = 'USD';
+                }
+                select.value = id === 'fromCurrency' ? state.from : state.to;
             }
         }
 
-        function convertCurrency() {
-            const amount = parseFloat(document.getElementById('fromAmount').value) || 0;
-            const rate = exchangeRates[fromCurrency] && exchangeRates[fromCurrency][toCurrency];
-            
-            if (rate && amount > 0) {
-                const convertedAmount = (amount * rate).toFixed(2);
-                document.getElementById('toAmount').value = convertedAmount;
+        function setRateText(el, key, value) {
+            const text = formatRate(value);
+            const old = state.shownRates[key];
+            if (el.textContent !== text) {
+                el.textContent = text;
+                if (old != null && old !== value) {
+                    el.classList.remove('tick-up', 'tick-down');
+                    void el.offsetWidth;
+                    el.classList.add(value > old ? 'tick-up' : 'tick-down');
+                }
+            }
+            state.shownRates[key] = value;
+        }
+
+        function render() {
+            $('fromFlag').textContent = flagFor(state.from);
+            $('toFlag').textContent = flagFor(state.to);
+            $('fromName').textContent = currencyName(state.from);
+            $('toName').textContent = currencyName(state.to);
+
+            $('ratesError').innerHTML = state.error ? '<div class="error"></div>' : '';
+            if (state.error) $('ratesError').firstChild.textContent = state.error;
+
+            convert();
+
+            const r = rate(state.from, state.to);
+            if (r) {
+                $('rateLine').innerHTML = '';
+                const span = document.createElement('span');
+                span.textContent = `1 ${state.from} = ${formatRate(r.value)} ${state.to}  ·  1 ${state.to} = ${formatRate(1 / r.value)} ${state.from}`;
+                $('rateLine').appendChild(span);
+                $('rateLine').insertAdjacentHTML('beforeend', badge(r.live));
             } else {
-                document.getElementById('toAmount').value = '';
+                $('rateLine').textContent = '';
+            }
+
+            const container = $('ratesContainer');
+            if (state.daily) {
+                const pairs = QUICK_PAIRS.slice();
+                if (!pairs.some(([a, b]) => a === state.from && b === state.to)) pairs.unshift([state.from, state.to]);
+                // Rebuild the list only when the pairs change, so value flashes stay visible.
+                const signature = pairs.map(p => p.join('/')).join(',');
+                if (container.dataset.signature !== signature) {
+                    container.innerHTML = '';
+                    container.dataset.signature = signature;
+                    pairs.forEach(([a, b]) => {
+                        const item = document.createElement('div');
+                        item.className = 'rate-item';
+                        item.title = 'Convert ' + a + ' to ' + b;
+                        item.dataset.pair = a + '/' + b;
+                        item.innerHTML = '<span class="rate-pair"></span><span><span class="rate-value"></span><span class="rate-badge"></span></span>';
+                        item.querySelector('.rate-pair').textContent = `${flagFor(a)} ${a}/${b}`;
+                        item.addEventListener('click', () => { state.from = a; state.to = b; onPairChanged(); });
+                        container.appendChild(item);
+                    });
+                }
+                container.querySelectorAll('.rate-item').forEach(item => {
+                    const [a, b] = item.dataset.pair.split('/');
+                    const pr = rate(a, b);
+                    if (!pr) return;
+                    setRateText(item.querySelector('.rate-value'), item.dataset.pair, pr.value);
+                    item.querySelector('.rate-badge').innerHTML = badge(pr.live);
+                });
+            }
+
+            renderStatus();
+        }
+
+        function timeAgo(ms) {
+            const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
+            if (s < 60) return s + 's ago';
+            const m = Math.round(s / 60);
+            return m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago';
+        }
+
+        function renderStatus() {
+            const subtitle = $('subtitle');
+            const text = $('statusText');
+            subtitle.classList.remove('delayed', 'offline');
+
+            if (!state.daily && !state.lastLive) {
+                if (state.error) subtitle.classList.add('offline');
+                text.textContent = state.error ? 'Offline – retrying…' : 'Connecting…';
+            } else if (document.hidden) {
+                text.textContent = 'Paused while this tab is hidden';
+            } else if (!state.lastLive || Date.now() - state.lastLive > STALE_MS) {
+                subtitle.classList.add('delayed');
+                text.textContent = 'Live rates delayed – using daily rates';
+            } else {
+                text.textContent = 'Live rates • ' + Object.keys(state.daily ? state.daily.rates : {}).length + ' currencies';
+            }
+
+            const parts = [];
+            if (state.lastLive) parts.push('Live rates checked ' + timeAgo(state.lastLive) + ' (refresh every 30 s)');
+            if (state.daily) parts.push('Daily rates from ' + state.daily.date);
+            $('lastUpdated').innerHTML = '';
+            $('lastUpdated').textContent = parts.join(' · ');
+            $('lastUpdated').insertAdjacentHTML('beforeend',
+                '<br>Sources: <a href="https://gold-api.com" target="_blank" rel="noopener">gold-api.com</a> (live), ' +
+                '<a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">ExchangeRate-API</a> (daily)');
+        }
+
+        function convert() {
+            const amount = parseFloat($('fromAmount').value);
+            const r = rate(state.from, state.to);
+            if (r && !isNaN(amount) && amount >= 0) {
+                $('toAmount').value = formatAmount(amount * r.value, state.to);
+            } else {
+                $('toAmount').value = '';
             }
         }
 
-        function swapCurrencies() {
-            // Swap currency codes
-            const temp = fromCurrency;
-            fromCurrency = toCurrency;
-            toCurrency = temp;
-
-            // Update UI
-            document.getElementById('fromFlag').textContent = currencies[fromCurrency].flag;
-            document.getElementById('fromCode').textContent = fromCurrency;
-            document.getElementById('toFlag').textContent = currencies[toCurrency].flag;
-            document.getElementById('toCode').textContent = toCurrency;
-
-            // Swap amounts
-            const fromAmount = document.getElementById('fromAmount').value;
-            const toAmount = document.getElementById('toAmount').value;
-            document.getElementById('fromAmount').value = toAmount || '';
-            
-            // Convert with new currencies
-            convertCurrency();
+        function saveChoice() {
+            try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ from: state.from, to: state.to, amount: $('fromAmount').value })); } catch {}
         }
 
-        // Event listeners
-        document.getElementById('fromAmount').addEventListener('input', convertCurrency);
+        function onPairChanged() {
+            $('fromCurrency').value = state.from;
+            $('toCurrency').value = state.to;
+            saveChoice();
+            render();
+            pollLive(); // fetch live rates for the new pair right away
+        }
 
-        // Make currency flags clickable to cycle through options
-        document.getElementById('fromFlag').addEventListener('click', () => {
-            const currencyKeys = Object.keys(currencies);
-            const currentIndex = currencyKeys.indexOf(fromCurrency);
-            const nextIndex = (currentIndex + 1) % currencyKeys.length;
-            const newCurrency = currencyKeys[nextIndex];
-
-            if (newCurrency !== toCurrency) {
-                fromCurrency = newCurrency;
-                document.getElementById('fromFlag').textContent = currencies[newCurrency].flag;
-                document.getElementById('fromCode').textContent = newCurrency;
-                convertCurrency();
-            }
+        // Events
+        $('fromAmount').addEventListener('input', () => { convert(); saveChoice(); });
+        $('fromCurrency').addEventListener('change', (e) => { state.from = e.target.value; onPairChanged(); });
+        $('toCurrency').addEventListener('change', (e) => { state.to = e.target.value; onPairChanged(); });
+        $('swapBtn').addEventListener('click', () => {
+            [state.from, state.to] = [state.to, state.from];
+            onPairChanged();
         });
 
-        document.getElementById('toFlag').addEventListener('click', () => {
-            const currencyKeys = Object.keys(currencies);
-            const currentIndex = currencyKeys.indexOf(toCurrency);
-            const nextIndex = (currentIndex + 1) % currencyKeys.length;
-            const newCurrency = currencyKeys[nextIndex];
+        function startPolling() {
+            if (state.pollTimer) return;
+            pollLive();
+            if (state.daily && Date.now() - state.lastDailyFetch > DAILY_REFRESH_MS) loadDaily();
+            state.pollTimer = setInterval(pollLive, LIVE_POLL_MS);
+        }
 
-            if (newCurrency !== fromCurrency) {
-                toCurrency = newCurrency;
-                document.getElementById('toFlag').textContent = currencies[newCurrency].flag;
-                document.getElementById('toCode').textContent = newCurrency;
-                convertCurrency();
-            }
+        function stopPolling() {
+            clearInterval(state.pollTimer);
+            state.pollTimer = null;
+        }
+
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) stopPolling(); else startPolling();
+            renderStatus();
         });
 
-        // Auto-refresh rates every 5 minutes
-        setInterval(fetchExchangeRates, 5 * 60 * 1000);
+        // Restore the last pair and amount
+        try {
+            const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            if (saved) {
+                if (/^[A-Z]{3}$/.test(saved.from)) state.from = saved.from;
+                if (/^[A-Z]{3}$/.test(saved.to)) state.to = saved.to;
+                if (saved.amount !== undefined && saved.amount !== '') $('fromAmount').value = saved.amount;
+            }
+        } catch {}
 
-        // Initialize the app
-        fetchExchangeRates();
+        loadDaily();
+        startPolling();
+        setInterval(() => { if (!document.hidden) loadDaily(); }, DAILY_REFRESH_MS);
+        setInterval(() => { if (!document.hidden) renderStatus(); }, 1000);
     </script>
 </body>
 </html>
