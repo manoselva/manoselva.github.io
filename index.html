@@ -501,7 +501,7 @@
                     <div class="india-value silver-text" id="inr-skg">—</div>
                 </div>
                 <div class="india-item">
-                    <div class="price-label"><span style="color: #00d4ff;">●</span> USD → INR rate</div>
+                    <div class="price-label"><span style="color: #00d4ff;">●</span> USD → INR rate <span id="inr-fx-src"></span></div>
                     <div class="india-value fx-text" id="inr-fx">—</div>
                 </div>
             </div>
@@ -520,7 +520,8 @@
 
         <div class="footer">
             Prices refresh every 15 seconds while this tab is open.<br>
-            Data: <a href="https://gold-api.com" target="_blank" rel="noopener">gold-api.com</a> (live spot),
+            Data (same sources as the Minnal app): <a href="https://gold-api.com" target="_blank" rel="noopener">gold-api.com</a> (live spot and USD→INR),
+            <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">ExchangeRate-API</a> (backup USD→INR),
             <a href="https://github.com/fawazahmed0/exchange-api" target="_blank" rel="noopener">exchange-api</a> (daily reference),
             chart by <a href="https://www.bullionvault.com" target="_blank" rel="noopener">BullionVault</a>.
             For information only — not financial advice.
@@ -544,6 +545,8 @@
             reference: {},    // symbol -> USD per oz from the daily snapshot
             referenceDate: null,
             usdInr: null,
+            usdInrSource: null,   // 'live' (gold-api) or 'daily' (open.er-api)
+            dailyInrFetched: 0,
             lastIndia: {},
             lastSuccess: 0,
             sourceTime: null,
@@ -603,6 +606,22 @@
             }
         }
 
+        // Daily USD -> INR rate, used only when the live rate is unavailable.
+        async function loadDailyInr() {
+            if (state.usdInrSource === 'daily' && Date.now() - state.dailyInrFetched < REF_REFRESH_MS) return;
+            try {
+                const data = await getJSON('https://open.er-api.com/v6/latest/USD');
+                const rate = data.rates && data.rates.INR;
+                if (typeof rate === 'number' && rate > 0) {
+                    state.usdInr = rate;
+                    state.usdInrSource = 'daily';
+                    state.dailyInrFetched = Date.now();
+                }
+            } catch (err) {
+                console.warn('Daily USD/INR rate not available:', err.message);
+            }
+        }
+
         function renderChanges() {
             for (const sym of METALS) {
                 const price = state.prices[sym];
@@ -647,6 +666,7 @@
                 setValue($('inr-skg'), inr0.format(now.s1 * 1000), prev.s1, now.s1);
             }
             setValue($('inr-fx'), '₹' + fx.toFixed(3), prev.fx, fx);
+            $('inr-fx-src').textContent = state.usdInrSource === 'daily' ? '(daily rate)' : '(live)';
             state.lastIndia = now;
         }
 
@@ -674,8 +694,12 @@
             });
 
             const fxRes = results[METALS.length];
-            if (fxRes.status === 'fulfilled' && typeof fxRes.value.exchangeRate === 'number') {
+            if (fxRes.status === 'fulfilled' && typeof fxRes.value.exchangeRate === 'number' && fxRes.value.exchangeRate > 0) {
                 state.usdInr = fxRes.value.exchangeRate;
+                state.usdInrSource = 'live';
+            } else if (state.usdInrSource !== 'live' || Date.now() - state.lastSuccess > STALE_MS) {
+                // Same fallback as the Minnal app: the daily open.er-api table.
+                await loadDailyInr();
             }
 
             if (ok > 0) {
