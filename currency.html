@@ -421,7 +421,6 @@
     <nav class="site-nav">
         <a href="./">🥇 Gold &amp; Silver</a>
         <a href="currency.html" aria-current="page">💱 Currency</a>
-        <a href="yt-dlp.html">🎬 yt-dlp Builder</a>
         <a href="json.html">💬 Claude Viewer</a>
     </nav>
 
@@ -534,7 +533,8 @@
         }
 
         async function getJSON(url) {
-            const response = await fetch(url, { cache: 'no-store' });
+            // A hung request must not block the next refresh.
+            const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(8000) });
             if (!response.ok) throw new Error(url + ' returned HTTP ' + response.status);
             return response.json();
         }
@@ -618,6 +618,16 @@
         }
 
         async function pollLive() {
+            if (state.polling) return;
+            state.polling = true;
+            try {
+                await pollLiveOnce();
+            } finally {
+                state.polling = false;
+            }
+        }
+
+        async function pollLiveOnce() {
             const codes = liveCodesNeeded();
             const results = await Promise.allSettled(codes.map(c => getJSON(LIVE_URL(c))));
             let ok = 0;
