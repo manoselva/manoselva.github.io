@@ -3,9 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Gold & Silver Prices</title>
-    <script type="text/javascript" src="https://www.bullionvault.com/chart/bullionvaultchart.js"></script>
+    <title>Live Gold & Silver Prices (USD & INR)</title>
+    <meta name="description" content="Live gold, silver, platinum and palladium spot prices in USD, with Indian rupee prices per gram for 24K and 22K gold.">
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2536/2536800.png" type="image/png" />
+    <script type="text/javascript" src="https://www.bullionvault.com/chart/bullionvaultchart.js" defer></script>
     <style>
         * {
             margin: 0;
@@ -26,9 +27,40 @@
             margin: 0 auto;
         }
 
+        /* Shared site navigation */
+        .site-nav {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            justify-content: center;
+            margin-bottom: 25px;
+        }
+
+        .site-nav a {
+            color: #9aa4c7;
+            text-decoration: none;
+            padding: 7px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            font-size: 0.9em;
+            transition: all 0.2s ease;
+        }
+
+        .site-nav a:hover {
+            color: #fff;
+            border-color: rgba(0, 255, 255, 0.4);
+        }
+
+        .site-nav a[aria-current="page"] {
+            color: #1a1d2e;
+            background: linear-gradient(45deg, #00ffff, #ffd700);
+            border-color: transparent;
+            font-weight: 600;
+        }
+
         h1 {
             text-align: center;
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             font-size: 2.5em;
             background: linear-gradient(45deg, #00ffff, #ffd700);
             -webkit-background-clip: text;
@@ -37,11 +69,54 @@
             font-weight: 600;
         }
 
+        .status-bar {
+            text-align: center;
+            padding: 12px;
+            background: rgba(0, 255, 255, 0.05);
+            border-radius: 10px;
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            margin-bottom: 30px;
+            font-size: 0.95em;
+        }
+
+        .status-bar.delayed {
+            background: rgba(255, 170, 0, 0.07);
+            border-color: rgba(255, 170, 0, 0.35);
+        }
+
+        .status-bar.offline {
+            background: rgba(255, 68, 68, 0.07);
+            border-color: rgba(255, 68, 68, 0.35);
+        }
+
+        .status-indicator {
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #00ff88;
+            margin-right: 8px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .delayed .status-indicator { background: #ffaa00; }
+        .offline .status-indicator { background: #ff4444; animation: none; }
+
+        .status-sub {
+            color: #888;
+            margin-left: 10px;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
         .price-summary {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
             gap: 20px;
-            margin-bottom: 40px;
+            margin-bottom: 20px;
         }
 
         .summary-card {
@@ -50,7 +125,7 @@
             padding: 25px;
             box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
             border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: all 0.3s ease;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .summary-card:hover {
@@ -58,33 +133,16 @@
             box-shadow: 0 15px 50px rgba(0, 255, 255, 0.2);
         }
 
-        .summary-card.gold {
-            border-left: 4px solid #ffd700;
-        }
-
-        .summary-card.silver {
-            border-left: 4px solid #c0c0c0;
-        }
-
-        .summary-card.india {
-            border-left: none;
-            background: linear-gradient(135deg, 
-                #ff9933 0%, 
-                #ff9933 33%, 
-                #ffffff 33%, 
-                #ffffff 66%, 
-                #138808 66%, 
-                #138808 100%) left / 4px 100% no-repeat,
-                linear-gradient(135deg, #242938 0%, #1e2230 100%);
-            position: relative;
-        }
-
+        .summary-card.gold { border-left: 4px solid #ffd700; }
+        .summary-card.silver { border-left: 4px solid #c0c0c0; }
+        .summary-card.platinum { border-left: 4px solid #a8d8e8; }
+        .summary-card.palladium { border-left: 4px solid #cfa9e8; }
 
         .card-header {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
 
         .metal-icon {
@@ -96,35 +154,25 @@
             font-weight: 600;
         }
 
-        .gold .metal-name {
-            color: #ffd700;
+        .metal-unit {
+            margin-left: auto;
+            font-size: 0.8em;
+            color: #777;
         }
 
-        .silver .metal-name {
-            color: #c0c0c0;
-        }
-
-        .india .metal-name {
-            background: linear-gradient(90deg, #ff9933 0%, #ffffff 50%, #138808 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 700;
-        }
+        .gold .metal-name { color: #ffd700; }
+        .silver .metal-name { color: #c0c0c0; }
+        .platinum .metal-name { color: #a8d8e8; }
+        .palladium .metal-name { color: #cfa9e8; }
 
         .price-large {
-            font-size: 2.8em;
+            font-size: 2.6em;
             font-weight: 700;
             color: #00ffff;
-            margin: 15px 0;
-            text-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
-        }
-
-        .price-secondary {
-            font-size: 1.8em;
-            font-weight: 600;
-            color: #00d4ff;
             margin: 10px 0;
+            text-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
+            font-variant-numeric: tabular-nums;
+            border-radius: 8px;
         }
 
         .price-label {
@@ -135,48 +183,103 @@
 
         .change-info {
             display: flex;
+            flex-wrap: wrap;
             gap: 15px;
             font-size: 1.1em;
             margin-top: 10px;
+            font-variant-numeric: tabular-nums;
         }
 
-        .change-positive {
-            color: #00ff88;
+        .change-ref {
+            font-size: 0.8em;
+            color: #666;
+            text-align: center;
+            margin-bottom: 25px;
         }
 
-        .change-negative {
-            color: #ff4444;
+        .change-positive { color: #00ff88; }
+        .change-negative { color: #ff4444; }
+        .change-flat { color: #888; }
+
+        /* Brief flash when a price moves */
+        .tick-up { animation: tickUp 1.2s ease-out; }
+        .tick-down { animation: tickDown 1.2s ease-out; }
+
+        @keyframes tickUp {
+            0% { background: rgba(0, 255, 136, 0.35); }
+            100% { background: transparent; }
         }
 
-        .india-price-row {
-            margin: 15px 0;
+        @keyframes tickDown {
+            0% { background: rgba(255, 68, 68, 0.35); }
+            100% { background: transparent; }
         }
 
-        .india-gold {
-            color: #ffd700 !important;
+        /* India card */
+        .india-card {
+            background: linear-gradient(135deg,
+                #ff9933 0%,
+                #ff9933 33%,
+                #ffffff 33%,
+                #ffffff 66%,
+                #138808 66%,
+                #138808 100%) left / 4px 100% no-repeat,
+                linear-gradient(135deg, #242938 0%, #1e2230 100%);
+            border-radius: 20px;
+            padding: 25px 25px 25px 29px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            margin-bottom: 30px;
+        }
+
+        .india-card .metal-name {
+            background: linear-gradient(90deg, #ff9933 0%, #ffffff 50%, #138808 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-weight: 700;
+        }
+
+        .india-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .india-item {
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 12px;
+            padding: 15px;
+        }
+
+        .india-value {
+            font-size: 1.9em;
+            font-weight: 700;
+            margin-top: 4px;
+            font-variant-numeric: tabular-nums;
+            border-radius: 6px;
+        }
+
+        .india-value.gold-text {
+            color: #ffd700;
             text-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-            font-size: 2.8em;
-            font-weight: 700;
-            margin: 15px 0;
         }
 
-        .india-silver {
-            color: #c0c0c0 !important;
+        .india-value.silver-text {
+            color: #c0c0c0;
             text-shadow: 0 0 15px rgba(192, 192, 192, 0.3);
-            font-size: 2.8em;
-            font-weight: 700;
-            margin: 15px 0;
         }
 
-        .india-divider {
-            height: 2px;
-            background: linear-gradient(to right, 
-                transparent, 
-                rgba(255, 153, 51, 0.4) 20%,
-                rgba(255, 255, 255, 0.4) 50%,
-                rgba(19, 136, 8, 0.4) 80%,
-                transparent);
-            margin: 20px 0;
+        .india-value.fx-text {
+            color: #00d4ff;
+        }
+
+        .india-note {
+            margin-top: 15px;
+            font-size: 0.85em;
+            color: #888;
+            line-height: 1.5;
         }
 
         .chart-section {
@@ -204,6 +307,12 @@
             overflow-y: hidden;
         }
 
+        .chart-error {
+            padding: 40px;
+            text-align: center;
+            color: #888;
+        }
+
         #embed {
             width: 100% !important;
             min-width: 800px;
@@ -211,36 +320,16 @@
             min-height: 500px;
         }
 
-        .status-bar {
-            text-align: center;
-            padding: 12px;
-            background: rgba(0, 255, 255, 0.05);
-            border-radius: 10px;
-            border: 1px solid rgba(0, 255, 255, 0.2);
-            margin-bottom: 30px;
-            font-size: 0.95em;
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #00ff88;
-            margin-right: 8px;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .last-update {
+        .footer {
             text-align: center;
             color: #666;
-            font-size: 0.9em;
+            font-size: 0.85em;
             margin-top: 30px;
+            line-height: 1.6;
+        }
+
+        .footer a {
+            color: #8899bb;
         }
 
         @media (max-width: 768px) {
@@ -260,12 +349,8 @@
                 min-height: 400px;
             }
 
-            .price-large, .india-gold, .india-silver {
+            .price-large {
                 font-size: 2.2em;
-            }
-
-            .price-secondary {
-                font-size: 1.5em;
             }
 
             .chart-title {
@@ -275,9 +360,18 @@
             .chart-section {
                 padding: 20px 15px;
             }
+
+            .status-sub {
+                display: block;
+                margin: 4px 0 0;
+            }
         }
 
         @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+
             .chart-container {
                 min-height: 350px;
             }
@@ -288,27 +382,40 @@
                 min-height: 350px;
             }
 
-            .summary-card {
+            .summary-card, .india-card {
                 padding: 20px;
             }
 
-            .price-large, .india-gold, .india-silver {
+            .price-large {
                 font-size: 2em;
             }
 
-            .price-secondary {
-                font-size: 1.3em;
+            .india-value {
+                font-size: 1.6em;
             }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            .status-indicator, .tick-up, .tick-down { animation: none; }
+            .summary-card:hover { transform: none; }
         }
     </style>
 </head>
 <body>
     <div class="container">
+        <nav class="site-nav">
+            <a href="./" aria-current="page">🥇 Gold &amp; Silver</a>
+            <a href="currency.html">💱 Currency</a>
+            <a href="yt-dlp.html">🎬 yt-dlp Builder</a>
+            <a href="json.html">💬 Claude Viewer</a>
+        </nav>
+
         <h1>⚡ Live Precious Metals Monitor</h1>
-        
-        <div class="status-bar">
+
+        <div class="status-bar" id="statusBar" role="status">
             <span class="status-indicator"></span>
-            <span id="statusText">Live - Real-time updates</span>
+            <span id="statusText">Connecting…</span>
+            <span class="status-sub" id="statusSub"></span>
         </div>
 
         <div class="price-summary">
@@ -316,11 +423,12 @@
                 <div class="card-header">
                     <span class="metal-icon">🥇</span>
                     <span class="metal-name">GOLD</span>
+                    <span class="metal-unit">USD / troy oz</span>
                 </div>
-                <div class="price-large" id="goldPrice">$0.00</div>
+                <div class="price-large" id="XAU-price">—</div>
                 <div class="change-info">
-                    <span id="goldChange">$0.00</span>
-                    <span id="goldChangePercent">0.00%</span>
+                    <span id="XAU-change"></span>
+                    <span id="XAU-pct"></span>
                 </div>
             </div>
 
@@ -328,32 +436,78 @@
                 <div class="card-header">
                     <span class="metal-icon">🥈</span>
                     <span class="metal-name">SILVER</span>
+                    <span class="metal-unit">USD / troy oz</span>
                 </div>
-                <div class="price-large" id="silverPrice">$0.00</div>
+                <div class="price-large" id="XAG-price">—</div>
                 <div class="change-info">
-                    <span id="silverChange">$0.00</span>
-                    <span id="silverChangePercent">0.00%</span>
+                    <span id="XAG-change"></span>
+                    <span id="XAG-pct"></span>
                 </div>
             </div>
 
-            <div class="summary-card india">
+            <div class="summary-card platinum">
                 <div class="card-header">
-                    <span class="metal-icon">🇮🇳</span>
-                    <span class="metal-name">INDIA PRICES</span>
+                    <span class="metal-icon">⚪</span>
+                    <span class="metal-name">PLATINUM</span>
+                    <span class="metal-unit">USD / troy oz</span>
                 </div>
-                <div class="india-price-row">
-                    <div class="price-label">
-                        <span style="color: #ffd700;">●</span> Gold (per gram)
-                    </div>
-                    <div class="india-gold" id="goldPriceINR">₹0.00</div>
+                <div class="price-large" id="XPT-price">—</div>
+                <div class="change-info">
+                    <span id="XPT-change"></span>
+                    <span id="XPT-pct"></span>
                 </div>
-                <div class="india-divider"></div>
-                <div class="india-price-row">
-                    <div class="price-label">
-                        <span style="color: #c0c0c0;">●</span> Silver (per gram)
-                    </div>
-                    <div class="india-silver" id="silverPriceINR">₹0.00</div>
+            </div>
+
+            <div class="summary-card palladium">
+                <div class="card-header">
+                    <span class="metal-icon">🔘</span>
+                    <span class="metal-name">PALLADIUM</span>
+                    <span class="metal-unit">USD / troy oz</span>
                 </div>
+                <div class="price-large" id="XPD-price">—</div>
+                <div class="change-info">
+                    <span id="XPD-change"></span>
+                    <span id="XPD-pct"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="change-ref" id="changeRef"></div>
+
+        <div class="india-card">
+            <div class="card-header">
+                <span class="metal-icon">🇮🇳</span>
+                <span class="metal-name">INDIA PRICES (INR)</span>
+            </div>
+            <div class="india-grid">
+                <div class="india-item">
+                    <div class="price-label"><span style="color: #ffd700;">●</span> Gold 24K (99.9%) / gram</div>
+                    <div class="india-value gold-text" id="inr-g24">—</div>
+                </div>
+                <div class="india-item">
+                    <div class="price-label"><span style="color: #ffd700;">●</span> Gold 22K (91.6%) / gram</div>
+                    <div class="india-value gold-text" id="inr-g22">—</div>
+                </div>
+                <div class="india-item">
+                    <div class="price-label"><span style="color: #ffd700;">●</span> Gold 24K / 10 grams</div>
+                    <div class="india-value gold-text" id="inr-g24x10">—</div>
+                </div>
+                <div class="india-item">
+                    <div class="price-label"><span style="color: #c0c0c0;">●</span> Silver / gram</div>
+                    <div class="india-value silver-text" id="inr-s1">—</div>
+                </div>
+                <div class="india-item">
+                    <div class="price-label"><span style="color: #c0c0c0;">●</span> Silver / kg</div>
+                    <div class="india-value silver-text" id="inr-skg">—</div>
+                </div>
+                <div class="india-item">
+                    <div class="price-label"><span style="color: #00d4ff;">●</span> USD → INR rate</div>
+                    <div class="india-value fx-text" id="inr-fx">—</div>
+                </div>
+            </div>
+            <div class="india-note">
+                Pure conversion: USD price per troy ounce × USD→INR rate ÷ 31.1035 grams.
+                No tax, import duty, GST or making charges are added.
             </div>
         </div>
 
@@ -364,111 +518,256 @@
             </div>
         </div>
 
-        <div class="last-update">
-            Last updated: <span id="lastUpdate">Never</span>
+        <div class="footer">
+            Prices refresh every 15 seconds while this tab is open.<br>
+            Data: <a href="https://gold-api.com" target="_blank" rel="noopener">gold-api.com</a> (live spot),
+            <a href="https://github.com/fawazahmed0/exchange-api" target="_blank" rel="noopener">exchange-api</a> (daily reference),
+            chart by <a href="https://www.bullionvault.com" target="_blank" rel="noopener">BullionVault</a>.
+            For information only — not financial advice.
         </div>
     </div>
 
     <script type="text/javascript">
-        // Initialize BullionVault Chart
-        var options = {
-            bullion: 'gold',
-            currency: 'USD',
-            timeframe: '1d',
-            chartType: 'line',
-            miniChartModeAxis: 'oz',
-            containerDefinedSize: true,
-            miniChartMode: false,
-            displayLatestPriceLine: true,
-            switchBullion: true,
-            switchCurrency: true,
-            switchTimeframe: true,
-            switchChartType: true,
-            exportButton: true
+        const API = 'https://api.gold-api.com/price/';
+        const METALS = ['XAU', 'XAG', 'XPT', 'XPD'];
+        const GRAMS_PER_OZ = 31.1034768;
+        const POLL_MS = 15000;          // the source updates about every 30 s
+        const STALE_MS = 60000;         // no good fetch for 1 min -> "Delayed"
+        const REF_REFRESH_MS = 60 * 60 * 1000;
+
+        const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
+        const inr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 });
+        const inr0 = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+
+        const state = {
+            prices: {},       // symbol -> USD per oz
+            reference: {},    // symbol -> USD per oz from the daily snapshot
+            referenceDate: null,
+            usdInr: null,
+            lastIndia: {},
+            lastSuccess: 0,
+            sourceTime: null,
+            lastError: null,
+            pollTimer: null
         };
-        var chartBV = new BullionVaultChart(options, 'embed');
 
-        // Fetch live prices for the cards (USD)
-        async function fetchPrices() {
-            try {
-                const response = await fetch('https://data-asg.goldprice.org/dbXRates/USD');
-                if (!response.ok) throw new Error('API request failed');
-                
-                const data = await response.json();
+        const $ = (id) => document.getElementById(id);
 
-                if (data.items && data.items.length > 0) {
-                    // Gold
-                    const goldPrice = data.items[0].xauPrice;
-                    const goldPrevClose = data.items[0].xauClose || goldPrice;
-                    const goldChange = goldPrice - goldPrevClose;
-                    const goldChangePercent = (goldChange / goldPrevClose) * 100;
-                    
-                    document.getElementById('goldPrice').textContent = '$' + goldPrice.toFixed(2);
-                    
-                    const goldChangeEl = document.getElementById('goldChange');
-                    goldChangeEl.textContent = (goldChange >= 0 ? '+' : '') + goldChange.toFixed(2);
-                    goldChangeEl.className = goldChange >= 0 ? 'change-positive' : 'change-negative';
-                    
-                    const goldPercentEl = document.getElementById('goldChangePercent');
-                    goldPercentEl.textContent = (goldChangePercent >= 0 ? '+' : '') + goldChangePercent.toFixed(2) + '%';
-                    goldPercentEl.className = goldChangePercent >= 0 ? 'change-positive' : 'change-negative';
+        async function getJSON(url) {
+            const response = await fetch(url, { cache: 'no-store' });
+            if (!response.ok) throw new Error(url + ' returned HTTP ' + response.status);
+            return response.json();
+        }
 
-                    // Silver
-                    const silverPrice = data.items[0].xagPrice;
-                    const silverPrevClose = data.items[0].xagClose || silverPrice;
-                    const silverChange = silverPrice - silverPrevClose;
-                    const silverChangePercent = (silverChange / silverPrevClose) * 100;
-                    
-                    document.getElementById('silverPrice').textContent = '$' + silverPrice.toFixed(2);
-                    
-                    const silverChangeEl = document.getElementById('silverChange');
-                    silverChangeEl.textContent = (silverChange >= 0 ? '+' : '') + silverChange.toFixed(2);
-                    silverChangeEl.className = silverChange >= 0 ? 'change-positive' : 'change-negative';
-                    
-                    const silverPercentEl = document.getElementById('silverChangePercent');
-                    silverPercentEl.textContent = (silverChangePercent >= 0 ? '+' : '') + silverChangePercent.toFixed(2) + '%';
-                    silverPercentEl.className = silverChangePercent >= 0 ? 'change-positive' : 'change-negative';
+        // Set text and flash green/red if the number moved.
+        function setValue(el, text, oldNum, newNum) {
+            if (el.textContent === text) return;
+            el.textContent = text;
+            if (oldNum == null || newNum === oldNum) return;
+            el.classList.remove('tick-up', 'tick-down');
+            void el.offsetWidth; // restart the animation
+            el.classList.add(newNum > oldNum ? 'tick-up' : 'tick-down');
+        }
 
-                    document.getElementById('lastUpdate').textContent = new Date().toLocaleString();
-                    document.getElementById('statusText').textContent = 'Live - Real-time updates';
+        function signed(n, digits) {
+            return (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toFixed(digits);
+        }
+
+        // Daily reference price, so the cards can show today's change.
+        // Uses the newest daily snapshot (today, else the days before).
+        async function loadReference() {
+            for (let back = 0; back <= 4; back++) {
+                const date = new Date(Date.now() - back * 86400000).toISOString().slice(0, 10);
+                const urls = [
+                    `https://cdn.jsdelivr.net/npm/@fawazahmed0/currency-api@${date}/v1/currencies/usd.min.json`,
+                    `https://${date}.currency-api.pages.dev/v1/currencies/usd.min.json`
+                ];
+                for (const url of urls) {
+                    try {
+                        const data = await getJSON(url);
+                        const r = data.usd;
+                        if (!r || !r.xau || !r.xag) continue;
+                        state.reference = {
+                            XAU: 1 / r.xau,
+                            XAG: 1 / r.xag,
+                            XPT: r.xpt ? 1 / r.xpt : null,
+                            XPD: r.xpd ? 1 / r.xpd : null
+                        };
+                        state.referenceDate = data.date || date;
+                        renderChanges();
+                        return;
+                    } catch (err) {
+                        console.warn('Reference price not available:', err.message);
+                    }
                 }
-            } catch (error) {
-                console.error('Error fetching USD prices:', error);
-                document.getElementById('statusText').textContent = 'Error - Retrying...';
             }
         }
 
-        // Fetch Indian prices (INR) and convert to per gram
-        async function fetchIndianPrices() {
-            try {
-                const response = await fetch('https://data-asg.goldprice.org/dbXRates/INR');
-                if (!response.ok) throw new Error('API request failed');
-                
-                const data = await response.json();
-
-                if (data.items && data.items.length > 0) {
-                    // Gold INR - convert from ounce to gram (1 ounce = 31.1035 grams)
-                    const goldPriceINROunce = data.items[0].xauPrice;
-                    const goldPriceINRPerGram = goldPriceINROunce / 31.1035;
-                    document.getElementById('goldPriceINR').textContent = '₹' + goldPriceINRPerGram.toFixed(2);
-
-                    // Silver INR - convert from ounce to gram (1 ounce = 31.1035 grams)
-                    const silverPriceINROunce = data.items[0].xagPrice;
-                    const silverPriceINRPerGram = silverPriceINROunce / 31.1035;
-                    document.getElementById('silverPriceINR').textContent = '₹' + silverPriceINRPerGram.toFixed(2);
+        function renderChanges() {
+            for (const sym of METALS) {
+                const price = state.prices[sym];
+                const ref = state.reference[sym];
+                const changeEl = $(sym + '-change');
+                const pctEl = $(sym + '-pct');
+                if (price == null || !ref) {
+                    changeEl.textContent = '';
+                    pctEl.textContent = '';
+                    continue;
                 }
-            } catch (error) {
-                console.error('Error fetching INR prices:', error);
+                const change = price - ref;
+                const pct = (change / ref) * 100;
+                const cls = Math.abs(pct) < 0.005 ? 'change-flat' : change > 0 ? 'change-positive' : 'change-negative';
+                changeEl.textContent = signed(change, 2);
+                pctEl.textContent = signed(pct, 2) + '%';
+                changeEl.className = cls;
+                pctEl.className = cls;
+            }
+            if (state.referenceDate) {
+                $('changeRef').textContent = 'Change is measured against the daily reference price of ' + state.referenceDate + ' (UTC).';
             }
         }
 
-        // Initialize and auto-update
-        fetchPrices();
-        fetchIndianPrices();
-        setInterval(() => {
-            fetchPrices();
-            fetchIndianPrices();
-        }, 30000); // Update every 30 seconds
+        function renderIndia() {
+            const gold = state.prices.XAU;
+            const silver = state.prices.XAG;
+            const fx = state.usdInr;
+            if (!fx) return;
+            const prev = state.lastIndia;
+            const now = { fx };
+            if (gold != null) {
+                now.g24 = gold * fx / GRAMS_PER_OZ;
+                now.g22 = now.g24 * 22 / 24;
+                setValue($('inr-g24'), inr.format(now.g24), prev.g24, now.g24);
+                setValue($('inr-g22'), inr.format(now.g22), prev.g22, now.g22);
+                setValue($('inr-g24x10'), inr0.format(now.g24 * 10), prev.g24, now.g24);
+            }
+            if (silver != null) {
+                now.s1 = silver * fx / GRAMS_PER_OZ;
+                setValue($('inr-s1'), inr.format(now.s1), prev.s1, now.s1);
+                setValue($('inr-skg'), inr0.format(now.s1 * 1000), prev.s1, now.s1);
+            }
+            setValue($('inr-fx'), '₹' + fx.toFixed(3), prev.fx, fx);
+            state.lastIndia = now;
+        }
+
+        async function poll() {
+            const requests = METALS.map(sym => getJSON(API + sym));
+            requests.push(getJSON(API + 'XAU/INR'));
+            const results = await Promise.allSettled(requests);
+
+            let ok = 0;
+            results.slice(0, METALS.length).forEach((res, i) => {
+                const sym = METALS[i];
+                if (res.status !== 'fulfilled' || typeof res.value.price !== 'number') {
+                    state.lastError = res.reason ? res.reason.message : 'bad data for ' + sym;
+                    return;
+                }
+                ok++;
+                const price = res.value.price;
+                const old = state.prices[sym];
+                state.prices[sym] = price;
+                setValue($(sym + '-price'), usd.format(price), old, price);
+                if (res.value.updatedAt) {
+                    const t = new Date(res.value.updatedAt);
+                    if (!state.sourceTime || t > state.sourceTime) state.sourceTime = t;
+                }
+            });
+
+            const fxRes = results[METALS.length];
+            if (fxRes.status === 'fulfilled' && typeof fxRes.value.exchangeRate === 'number') {
+                state.usdInr = fxRes.value.exchangeRate;
+            }
+
+            if (ok > 0) {
+                state.lastSuccess = Date.now();
+                state.lastError = null;
+            }
+            renderChanges();
+            renderIndia();
+            renderStatus();
+        }
+
+        function timeAgo(ms) {
+            const s = Math.max(0, Math.round((Date.now() - ms) / 1000));
+            if (s < 60) return s + 's ago';
+            const m = Math.round(s / 60);
+            return m < 60 ? m + ' min ago' : Math.round(m / 60) + ' h ago';
+        }
+
+        function renderStatus() {
+            const bar = $('statusBar');
+            const text = $('statusText');
+            const sub = $('statusSub');
+            bar.classList.remove('delayed', 'offline');
+
+            if (!state.lastSuccess) {
+                if (state.lastError) {
+                    bar.classList.add('offline');
+                    text.textContent = 'Offline – cannot reach the price service. Retrying…';
+                } else {
+                    text.textContent = 'Connecting…';
+                }
+                sub.textContent = '';
+                return;
+            }
+
+            if (document.hidden) {
+                text.textContent = 'Paused while this tab is hidden';
+            } else if (Date.now() - state.lastSuccess > STALE_MS) {
+                bar.classList.add('delayed');
+                text.textContent = 'Delayed – retrying…';
+            } else {
+                text.textContent = 'Live';
+            }
+            let detail = 'checked ' + timeAgo(state.lastSuccess);
+            if (state.sourceTime) detail += ' · market price from ' + timeAgo(state.sourceTime.getTime());
+            sub.textContent = detail;
+        }
+
+        function startPolling() {
+            if (state.pollTimer) return;
+            poll();
+            state.pollTimer = setInterval(poll, POLL_MS);
+        }
+
+        function stopPolling() {
+            clearInterval(state.pollTimer);
+            state.pollTimer = null;
+        }
+
+        // Do not waste requests in a hidden tab; refresh at once when it comes back.
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) stopPolling(); else startPolling();
+            renderStatus();
+        });
+
+        startPolling();
+        loadReference();
+        setInterval(loadReference, REF_REFRESH_MS);
+        setInterval(renderStatus, 1000);
+
+        // BullionVault chart (third-party script, loaded with defer)
+        window.addEventListener('load', () => {
+            if (typeof BullionVaultChart === 'undefined') {
+                $('embed').outerHTML = '<div class="chart-error">The chart could not be loaded. Please refresh the page.</div>';
+                return;
+            }
+            new BullionVaultChart({
+                bullion: 'gold',
+                currency: 'USD',
+                timeframe: '1d',
+                chartType: 'line',
+                miniChartModeAxis: 'oz',
+                containerDefinedSize: true,
+                miniChartMode: false,
+                displayLatestPriceLine: true,
+                switchBullion: true,
+                switchCurrency: true,
+                switchTimeframe: true,
+                switchChartType: true,
+                exportButton: true
+            }, 'embed');
+        });
     </script>
 </body>
 </html>
