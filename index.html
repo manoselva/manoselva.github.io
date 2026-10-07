@@ -5,167 +5,161 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gold Rate Today in Chennai · Live Gold &amp; Silver Prices</title>
     <meta name="description" content="Chennai 22K and 24K gold rate today, gold rate history by day, month and year, and live international gold and silver prices.">
-    <meta name="theme-color" content="#16120c">
+    <meta name="theme-color" content="#0c0a07">
+    <meta name="color-scheme" content="dark">
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2536/2536800.png" type="image/png" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <script type="text/javascript" src="https://www.bullionvault.com/chart/bullionvaultchart.js" defer></script>
     <style>
         :root {
-            --bg: #f5f1e8;
-            --card: #fffdf8;
-            --ink: #1d1a15;
-            --muted: #786f62;
-            --line: #e8e0d0;
-            --gold: #b8862b;
-            --gold-soft: #f3e6c4;
-            --up: #12804a;
-            --down: #c43d3d;
-            --radius: 18px;
-            --shadow: 0 1px 2px rgba(60, 40, 10, .05), 0 8px 28px rgba(60, 40, 10, .07);
+            color-scheme: dark;
+            --bg: #0c0a07;
+            --ink: #f4ecdc;
+            --soft: #cdbd9f;
+            --muted: #8f846f;
+            --line: rgba(232, 196, 120, .12);
+            --line-2: rgba(255, 255, 255, .06);
+            --gold: #e9bf5c;
+            --gold-hi: #fbe7ae;
+            --gold-lo: #c8902c;
+            --up: #5fd394;
+            --down: #ff8f86;
+            --panel: linear-gradient(180deg, rgba(255, 246, 225, .05), rgba(255, 246, 225, .022));
+            --radius: 22px;
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-            background: var(--bg);
+            font-family: Manrope, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
             color: var(--ink);
             line-height: 1.5;
+            min-height: 100vh;
+            background:
+                radial-gradient(900px 520px at 50% -180px, rgba(233, 191, 92, .20), transparent 70%),
+                radial-gradient(700px 500px at 100% 40%, rgba(233, 191, 92, .05), transparent 70%),
+                radial-gradient(700px 500px at 0% 75%, rgba(233, 191, 92, .045), transparent 70%),
+                var(--bg);
+            background-attachment: fixed;
             -webkit-font-smoothing: antialiased;
         }
 
         .num { font-variant-numeric: tabular-nums; }
-        .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+        .wrap { max-width: 1080px; margin: 0 auto; padding: 0 22px; }
+        a { color: var(--gold); }
 
         /* ---------- top bar ---------- */
-        .top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 12px;
-            padding: 18px 0;
+        .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 22px 0 26px; }
+        .brand { display: flex; align-items: center; gap: 11px; font-weight: 800; font-size: 1.08rem; letter-spacing: .3px; color: var(--ink); text-decoration: none; }
+        .coin {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 32% 28%, #fff5d2, #eac15f 38%, #a9731c 80%);
+            box-shadow: 0 0 0 2px rgba(251, 231, 174, .18), 0 4px 18px rgba(233, 191, 92, .35);
         }
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-weight: 700;
-            font-size: 1.05rem;
-            letter-spacing: .2px;
-            color: var(--ink);
-            text-decoration: none;
-        }
-        .brand-mark {
-            width: 26px;
-            height: 26px;
-            border-radius: 8px;
-            background: linear-gradient(135deg, #f6dc8c, #c8962f 55%, #8e6219);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5);
-        }
-        .site-nav { display: flex; gap: 4px; background: #ebe4d6; padding: 4px; border-radius: 999px; }
-        .site-nav a {
-            color: var(--muted);
-            text-decoration: none;
-            font-size: .9rem;
-            padding: 6px 14px;
-            border-radius: 999px;
-            transition: color .2s, background .2s;
-        }
+        .site-nav { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line); }
+        .site-nav a { color: var(--muted); text-decoration: none; font-size: .88rem; font-weight: 600; padding: 7px 16px; border-radius: 999px; transition: color .2s; }
         .site-nav a:hover { color: var(--ink); }
-        .site-nav a[aria-current="page"] { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
+        .site-nav a[aria-current="page"] { color: #1b150c; background: linear-gradient(135deg, var(--gold-hi), var(--gold-lo)); }
 
         /* ---------- hero: Chennai rate ---------- */
         .hero {
             position: relative;
             overflow: hidden;
-            border-radius: 24px;
-            padding: 30px 32px 24px;
-            color: #f7efe0;
+            border-radius: 28px;
+            padding: 34px 34px 26px;
+            border: 1px solid transparent;
             background:
-                radial-gradient(600px 260px at 85% -10%, rgba(232, 182, 80, .28), transparent 70%),
-                radial-gradient(500px 240px at -5% 110%, rgba(232, 182, 80, .14), transparent 70%),
-                linear-gradient(160deg, #221a10, #120f0a);
-            box-shadow: 0 20px 50px rgba(40, 25, 5, .25);
+                radial-gradient(620px 300px at 88% -20%, rgba(233, 191, 92, .26), transparent 70%),
+                radial-gradient(520px 260px at -10% 120%, rgba(233, 191, 92, .12), transparent 70%),
+                linear-gradient(165deg, #1d160c, #0f0c08) padding-box,
+                linear-gradient(135deg, rgba(251, 231, 174, .55), rgba(251, 231, 174, .06) 38%, rgba(251, 231, 174, .06) 62%, rgba(251, 231, 174, .4)) border-box;
+            box-shadow: 0 30px 80px -20px rgba(0, 0, 0, .7), 0 0 60px -20px rgba(233, 191, 92, .25);
         }
-        .hero-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px 16px; }
-        .eyebrow { font-size: .78rem; letter-spacing: 1.6px; text-transform: uppercase; color: #d9b768; font-weight: 600; }
-        .hero h1 { font-size: 1.6rem; font-weight: 650; margin-top: 4px; letter-spacing: -.2px; }
-        .hero-date { color: #b5a68c; font-size: .92rem; }
+        .hero-head { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 10px 16px; }
+        .eyebrow { display: flex; align-items: center; gap: 8px; font-size: .74rem; letter-spacing: 2.4px; text-transform: uppercase; color: var(--gold); font-weight: 700; }
+        .eyebrow::before { content: ""; width: 22px; height: 1px; background: var(--gold); opacity: .7; }
+        .hero h1 { font-size: clamp(1.5rem, 3.4vw, 2.1rem); font-weight: 800; letter-spacing: -.5px; margin-top: 6px; }
+        .date-pill { font-size: .85rem; color: var(--soft); background: rgba(255, 255, 255, .05); border: 1px solid var(--line); padding: 6px 14px; border-radius: 999px; }
 
-        .rates { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+        .rates { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 28px; }
         .rate {
-            border-radius: 16px;
-            padding: 20px 22px;
-            background: rgba(255, 255, 255, .045);
-            border: 1px solid rgba(232, 196, 120, .16);
+            position: relative;
+            border-radius: 20px;
+            padding: 22px 24px 20px;
+            background: linear-gradient(180deg, rgba(255, 246, 225, .055), rgba(255, 246, 225, .015));
+            border: 1px solid var(--line);
         }
-        .rate-label { display: flex; align-items: center; gap: 10px; color: #cdbd9f; font-size: .92rem; }
+        .rate-label { display: flex; align-items: center; gap: 10px; color: var(--soft); font-size: .9rem; font-weight: 500; }
         .karat {
-            font-weight: 700;
-            font-size: .8rem;
+            font-weight: 800;
+            font-size: .78rem;
             color: #1b150c;
-            background: linear-gradient(135deg, #f8e3a3, #d3a240);
-            border-radius: 6px;
-            padding: 2px 7px;
+            background: linear-gradient(135deg, var(--gold-hi), var(--gold-lo));
+            border-radius: 7px;
+            padding: 3px 8px;
         }
         .rate-main {
-            font-size: clamp(2.1rem, 5.4vw, 3rem);
-            font-weight: 700;
-            letter-spacing: -1px;
-            margin: 6px 0 2px;
-            background: linear-gradient(180deg, #fff3cf, #e2b552);
+            font-size: clamp(2.5rem, 6.2vw, 3.7rem);
+            font-weight: 800;
+            letter-spacing: -1.5px;
+            line-height: 1.1;
+            margin: 10px 0 8px;
+            background: linear-gradient(100deg, #f7d98a 0%, #fff6d8 22%, #e9bf5c 45%, #c8902c 70%, #f7d98a 100%);
+            background-size: 220% 100%;
             -webkit-background-clip: text;
             background-clip: text;
             color: transparent;
+            animation: shine 3.2s ease-out 1;
         }
-        .rate-main small { font-size: .38em; font-weight: 500; letter-spacing: 0; color: #b5a68c; -webkit-text-fill-color: #b5a68c; }
-        .rate-sub { display: flex; flex-wrap: wrap; gap: 4px 18px; color: #b5a68c; font-size: .9rem; margin-top: 8px; }
-        .rate-sub b { color: #f0e4cc; font-weight: 600; }
+        @keyframes shine { from { background-position: 100% 0; } to { background-position: 0 0; } }
+        .rate-main small { font-size: .34em; font-weight: 600; letter-spacing: 0; color: var(--muted); -webkit-text-fill-color: var(--muted); margin-left: 4px; }
+        .rate-sub { display: flex; flex-wrap: wrap; gap: 4px 20px; color: var(--muted); font-size: .88rem; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
+        .rate-sub b { color: var(--ink); font-weight: 700; margin-left: 4px; }
 
-        .chip { display: inline-block; font-size: .82rem; font-weight: 600; border-radius: 999px; padding: 2px 10px; }
-        .chip.up { color: #6ee7a6; background: rgba(46, 204, 113, .12); }
-        .chip.down { color: #ff9b9b; background: rgba(231, 76, 60, .14); }
-        .chip.flat { color: #cdbd9f; background: rgba(255, 255, 255, .07); }
+        .chip { display: inline-flex; align-items: center; gap: 4px; font-size: .8rem; font-weight: 700; border-radius: 999px; padding: 3px 11px; }
+        .chip.up { color: var(--up); background: rgba(95, 211, 148, .1); }
+        .chip.down { color: var(--down); background: rgba(255, 143, 134, .1); }
+        .chip.flat { color: var(--soft); background: rgba(255, 255, 255, .06); }
 
-        .hero-note { margin-top: 18px; font-size: .84rem; color: #9d8f77; }
-        .hero-note a { color: #d9b768; }
+        .hero-note { margin-top: 20px; font-size: .82rem; color: var(--muted); }
 
         /* ---------- cards ---------- */
-        .card {
-            background: var(--card);
-            border: 1px solid var(--line);
-            border-radius: var(--radius);
-            box-shadow: var(--shadow);
-            padding: 24px;
-            margin-top: 22px;
-        }
-        .card-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px 16px; margin-bottom: 18px; }
-        .card h2 { font-size: 1.15rem; font-weight: 650; letter-spacing: -.1px; }
-        .card h2 span { color: var(--muted); font-weight: 400; font-size: .9rem; margin-left: 6px; }
+        .card { background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); padding: 26px; margin-top: 22px; }
+        .card-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px 16px; margin-bottom: 20px; }
+        .card h2 { font-size: 1.18rem; font-weight: 800; letter-spacing: -.2px; }
+        .card h2 span { color: var(--muted); font-weight: 500; font-size: .88rem; margin-left: 8px; }
+        .hint { font-size: .82rem; color: var(--muted); }
 
-        /* live status pill */
-        .status { display: inline-flex; align-items: center; gap: 8px; font-size: .85rem; color: var(--muted); }
-        .status b { color: var(--ink); font-weight: 600; }
-        .dot { width: 8px; height: 8px; border-radius: 50%; background: #b9b0a0; }
-        .status.live .dot { background: #18a35a; box-shadow: 0 0 0 0 rgba(24, 163, 90, .5); animation: pulse 2s infinite; }
-        .status.delayed .dot { background: #e0a106; }
+        /* live status */
+        .status { display: inline-flex; align-items: center; gap: 8px; font-size: .82rem; color: var(--muted); padding: 5px 12px; border-radius: 999px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line-2); }
+        .status b { color: var(--ink); font-weight: 700; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #6d6455; }
+        .status.live .dot { background: #34d17d; animation: pulse 2s infinite; }
+        .status.delayed .dot { background: #f0b429; }
         .status.offline .dot { background: var(--down); }
-        @keyframes pulse { 70% { box-shadow: 0 0 0 7px rgba(24, 163, 90, 0); } 100% { box-shadow: 0 0 0 0 rgba(24, 163, 90, 0); } }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(52, 209, 125, .55); } 70% { box-shadow: 0 0 0 8px rgba(52, 209, 125, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 209, 125, 0); } }
 
-        .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
-        .tile { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; background: #fffaf0; }
-        .tile-label { font-size: .82rem; color: var(--muted); }
-        .tile-value { font-size: 1.5rem; font-weight: 700; letter-spacing: -.4px; margin: 2px 0; }
-        .tile-change { font-size: .85rem; font-weight: 600; min-height: 1.3em; }
+        .stats { display: grid; grid-template-columns: repeat(3, 1fr); }
+        .stat { padding: 2px 22px; }
+        .stat:first-child { padding-left: 0; }
+        .stat + .stat { border-left: 1px solid var(--line); }
+        .stat-label { font-size: .8rem; color: var(--muted); font-weight: 500; }
+        .stat-value { font-size: 1.75rem; font-weight: 800; letter-spacing: -.6px; margin: 2px 0; }
+        .stat-change { font-size: .82rem; font-weight: 700; min-height: 1.3em; }
         .up-t { color: var(--up); }
         .down-t { color: var(--down); }
         .flat-t { color: var(--muted); }
 
-        .spot { margin-top: 14px; border-radius: 14px; background: #faf5ea; padding: 14px 16px; }
-        .spot-title { font-size: .82rem; color: var(--muted); margin-bottom: 8px; }
-        .spot-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
-        .spot-row div { font-size: .82rem; color: var(--muted); }
-        .spot-row b { display: block; color: var(--ink); font-size: 1.05rem; font-weight: 650; }
-        .spot-note { margin-top: 10px; font-size: .82rem; color: var(--muted); }
+        .spot { margin-top: 22px; border-radius: 16px; background: rgba(0, 0, 0, .25); border: 1px solid var(--line-2); padding: 16px 18px; }
+        .spot-title { font-size: .76rem; color: var(--gold); letter-spacing: 1.4px; text-transform: uppercase; font-weight: 700; margin-bottom: 10px; }
+        .spot-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+        .spot-row div { font-size: .8rem; color: var(--muted); }
+        .spot-row b { display: block; color: var(--ink); font-size: 1.08rem; font-weight: 700; margin-top: 2px; }
+        .spot-note { margin-top: 12px; font-size: .8rem; color: var(--muted); }
 
         .tick-up { animation: tickUp 1.2s ease-out; }
         .tick-down { animation: tickDown 1.2s ease-out; }
@@ -173,108 +167,178 @@
         @keyframes tickDown { 0% { color: var(--down); } 100% { color: inherit; } }
 
         /* ---------- history ---------- */
-        .seg { display: inline-flex; background: #f0e9db; border-radius: 10px; padding: 3px; gap: 2px; }
+        .seg { display: inline-flex; gap: 2px; padding: 3px; border-radius: 12px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line-2); }
         .seg button {
             border: 0;
             background: transparent;
             font: inherit;
-            font-size: .88rem;
+            font-size: .85rem;
+            font-weight: 600;
             color: var(--muted);
-            padding: 6px 14px;
-            border-radius: 8px;
+            padding: 6px 15px;
+            border-radius: 9px;
             cursor: pointer;
+            transition: color .2s, background .2s;
         }
-        .seg button[aria-selected="true"] { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
+        .seg button:hover { color: var(--ink); }
+        .seg button[aria-selected="true"] { color: #1b150c; background: linear-gradient(135deg, var(--gold-hi), var(--gold-lo)); }
 
-        .controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+        .controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 16px; }
         .period { display: flex; align-items: center; gap: 6px; }
         .period select, .icon-btn {
             font: inherit;
-            font-size: .9rem;
+            font-size: .88rem;
+            font-weight: 600;
             color: var(--ink);
-            background: var(--card);
+            background: #16120c;
             border: 1px solid var(--line);
             border-radius: 10px;
             height: 36px;
         }
-        .period select { padding: 0 8px; cursor: pointer; }
-        .icon-btn { width: 36px; cursor: pointer; font-size: 1rem; }
-        .icon-btn:disabled { opacity: .35; cursor: default; }
+        .period select { padding: 0 10px; cursor: pointer; }
+        .icon-btn { width: 36px; cursor: pointer; font-size: 1.05rem; color: var(--gold); }
+        .icon-btn:disabled { opacity: .3; cursor: default; }
 
-        .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
-        .summary div { background: #faf5ea; border-radius: 12px; padding: 10px 12px; font-size: .78rem; color: var(--muted); }
-        .summary b { display: block; font-size: 1rem; color: var(--ink); font-weight: 650; }
+        .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 8px; }
+        .summary div { border-radius: 14px; padding: 11px 14px; font-size: .76rem; color: var(--muted); background: rgba(255, 255, 255, .03); border: 1px solid var(--line-2); }
+        .summary b { display: block; font-size: 1.02rem; color: var(--ink); font-weight: 700; margin-top: 2px; }
 
-        .spark { position: relative; height: 120px; margin-bottom: 8px; }
+        .spark { position: relative; height: 150px; margin: 18px 0 14px; }
         .spark svg { width: 100%; height: 100%; display: block; overflow: visible; }
         .spark-tip {
             position: absolute;
-            top: 0;
+            top: -6px;
             transform: translateX(-50%);
-            background: var(--ink);
-            color: #fff;
+            background: #17120b;
+            border: 1px solid rgba(233, 191, 92, .45);
+            color: var(--ink);
             font-size: .78rem;
-            padding: 3px 8px;
-            border-radius: 6px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 8px;
             pointer-events: none;
             white-space: nowrap;
             opacity: 0;
             transition: opacity .15s;
         }
 
-        .table-wrap { max-height: 460px; overflow: auto; border: 1px solid var(--line); border-radius: 12px; }
-        table { width: 100%; border-collapse: collapse; font-size: .92rem; }
-        th, td { padding: 10px 14px; text-align: right; white-space: nowrap; }
+        .table-wrap { max-height: 470px; overflow: auto; border-radius: 16px; border: 1px solid var(--line-2); }
+        table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+        th, td { padding: 11px 16px; text-align: right; white-space: nowrap; }
         th:first-child, td:first-child { text-align: left; }
-        thead th {
-            position: sticky;
-            top: 0;
-            background: #f7f1e4;
-            font-size: .78rem;
-            font-weight: 600;
-            color: var(--muted);
-            text-transform: uppercase;
-            letter-spacing: .5px;
-        }
-        tbody tr + tr td { border-top: 1px solid #f1ebdf; }
-        tbody tr:hover td { background: #fcf8ef; }
-        td.date { color: var(--muted); }
-        .empty { padding: 30px; text-align: center; color: var(--muted); }
+        thead th { position: sticky; top: 0; z-index: 1; background: #15110b; font-size: .72rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: .8px; }
+        tbody td { border-top: 1px solid var(--line-2); }
+        tbody tr:hover td { background: rgba(233, 191, 92, .05); }
+        td.date { color: var(--soft); }
+        .empty { padding: 34px; text-align: center !important; color: var(--muted); }
 
-        /* ---------- chart ---------- */
-        .chart-box {
-            position: relative;
-            height: 470px;
-            border-radius: 14px;
-            overflow: hidden;
-            border: 1px solid var(--line);
-            background: linear-gradient(90deg, #faf6ee 0%, #f3ecdf 50%, #faf6ee 100%);
+        /* ---------- chart (BullionVault, restyled; data and script unchanged) ---------- */
+        .chart-box { position: relative; height: 500px; margin-bottom: 18px; border-radius: 16px; }
+        .chart-box:not(.ready) {
+            background: linear-gradient(90deg, rgba(255, 255, 255, .02), rgba(255, 255, 255, .06), rgba(255, 255, 255, .02));
             background-size: 200% 100%;
             animation: shimmer 1.6s linear infinite;
         }
-        .chart-box.ready { animation: none; background: #fff; }
         @keyframes shimmer { to { background-position: -200% 0; } }
         #embed { width: 100%; height: 100%; }
-        #embed .bvchart { border: 0 !important; }
         .chart-error { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--muted); }
 
-        footer { padding: 30px 0 40px; color: var(--muted); font-size: .82rem; text-align: center; }
-        footer a { color: var(--gold); }
+        #embed .bvchart { border: 0 !important; }
+        #embed .bvchart__container { background: transparent !important; }
+        #embed .bvchart__controlbar {
+            background: transparent;
+            padding: 0 0 14px;
+            gap: 10px;
+            font-family: inherit;
+            font-weight: 600;
+        }
+        #embed .bvchart__controlgroup { gap: 3px; padding: 3px; border-radius: 11px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line-2); }
+        #embed .bvchart__controlgroup--right { right: 0; top: 0; }
+        #embed .bvchart__metal,
+        #embed .bvchart__time,
+        #embed .bvchart__export {
+            font-family: inherit;
+            font-size: 12.5px;
+            font-weight: 700;
+            line-height: 26px;
+            padding: 0 10px;
+            color: var(--muted);
+            background: transparent;
+            border: 0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: color .2s, background .2s;
+        }
+        #embed .bvchart__metal:hover,
+        #embed .bvchart__time:hover,
+        #embed .bvchart__export:hover { color: var(--ink); }
+        #embed button.bvchart--clicked { color: #1b150c; background: linear-gradient(135deg, var(--gold-hi), var(--gold-lo)); }
+        #embed .bvchart__list {
+            font-family: inherit;
+            font-size: 13px;
+            font-weight: 600;
+            height: 34px;
+            padding: 0 8px;
+            color: var(--ink);
+            background: #16120c;
+            border: 1px solid var(--line);
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        /* the pop-out icon font never loads and price alerts need a BullionVault account */
+        #embed .bvchart__popup,
+        #embed .bvchart__pricealert,
+        #embed .highcharts-axis-title a { display: none !important; }
+
+        #embed .highcharts-root { font-family: Manrope, system-ui, sans-serif !important; }
+        #embed .highcharts-background,
+        #embed .highcharts-plot-background { fill: transparent !important; }
+        #embed .highcharts-plot-border { stroke: none !important; }
+        #embed .highcharts-grid-line { stroke: rgba(255, 255, 255, .055) !important; }
+        #embed .highcharts-axis-line,
+        #embed .highcharts-tick { stroke: rgba(255, 255, 255, .1) !important; }
+        #embed .highcharts-axis-labels text { fill: var(--muted) !important; font-size: 11px !important; font-weight: 500 !important; }
+        #embed .highcharts-axis-title { fill: var(--soft) !important; font-weight: 700 !important; }
+        #embed .highcharts-graph { stroke: var(--gold) !important; stroke-width: 2.2px !important; }
+        #embed .highcharts-area { fill: url(#bvGoldFill) !important; fill-opacity: 1 !important; }
+        #embed .highcharts-point { stroke: var(--gold) !important; }
+        #embed .highcharts-plot-line { stroke: rgba(251, 231, 174, .5) !important; stroke-dasharray: 4 5; }
+        #embed .highcharts-plot-line-label { fill: var(--gold-hi) !important; }
+        #embed .highcharts-crosshair { stroke: rgba(251, 231, 174, .3) !important; }
+        #embed .highcharts-halo { fill: var(--gold) !important; }
+        #embed .highcharts-tooltip .highcharts-label-box,
+        #embed .highcharts-tooltip-box { fill: #17120b !important; stroke: rgba(233, 191, 92, .5) !important; }
+        #embed .highcharts-tooltip text,
+        #embed .highcharts-tooltip tspan { fill: var(--ink) !important; }
+        #embed .highcharts-root image { opacity: .07; }
+        #embed .bvchart__creditLogo { bottom: -12px !important; border-radius: 5px; opacity: .8; }
+        #embed .bvchart__credits { bottom: -12px !important; }
+        #embed .bvchart__creditLinks { background: #17120b !important; }
+        #embed .bvchart__credits { border-color: var(--line) !important; }
+        #embed .bvchart__credits a:link,
+        #embed .bvchart__credits a:visited { color: var(--ink) !important; }
+        #embed .bvchart__timestamp { bottom: -14px !important; color: var(--muted) !important; font-size: 11px !important; padding: 0 !important; text-decoration: none; }
+
+        footer { padding: 34px 0 44px; color: var(--muted); font-size: .8rem; text-align: center; }
         footer p + p { margin-top: 6px; }
 
         @media (max-width: 760px) {
             .wrap { padding: 0 14px; }
-            .hero { padding: 22px 18px 18px; border-radius: 20px; }
-            .hero h1 { font-size: 1.3rem; }
-            .rates { grid-template-columns: 1fr; gap: 12px; margin-top: 18px; }
-            .card { padding: 18px 14px; }
-            .tiles { grid-template-columns: 1fr 1fr; }
-            .tiles .tile:last-child { grid-column: span 2; }
+            .top { padding: 16px 0 18px; }
+            .hero { padding: 24px 18px 18px; border-radius: 22px; }
+            .rates { grid-template-columns: 1fr; gap: 12px; margin-top: 20px; }
+            .rate { padding: 18px 18px 16px; }
+            .card { padding: 20px 14px; }
+            .stats { grid-template-columns: 1fr 1fr; row-gap: 16px; }
+            .stat { padding: 0 14px; }
+            .stat:nth-child(3) { grid-column: span 2; border-left: 0; padding-left: 0; padding-top: 14px; border-top: 1px solid var(--line); }
+            .stat-value { font-size: 1.45rem; }
             .spot-row, .summary { grid-template-columns: 1fr 1fr; }
             .hide-sm { display: none; }
-            th, td { padding: 9px 8px; }
-            table { font-size: .86rem; }
-            .chart-box { height: 400px; }
+            th, td { padding: 10px 9px; }
+            table { font-size: .85rem; }
+            .chart-box { height: 420px; }
+            #embed .bvchart__controlbar { flex-wrap: wrap; }
         }
 
         @media (prefers-reduced-motion: reduce) {
@@ -283,9 +347,19 @@
     </style>
 </head>
 <body>
+    <!-- Gradient used by the chart's area fill -->
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+        <defs>
+            <linearGradient id="bvGoldFill" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0" stop-color="#e9bf5c" stop-opacity=".32" />
+                <stop offset="1" stop-color="#e9bf5c" stop-opacity="0" />
+            </linearGradient>
+        </defs>
+    </svg>
+
     <div class="wrap">
         <header class="top">
-            <a class="brand" href="./"><span class="brand-mark"></span>Gold Rate</a>
+            <a class="brand" href="./"><span class="coin"></span>Gold Rate</a>
             <nav class="site-nav">
                 <a href="./" aria-current="page">Gold &amp; Silver</a>
                 <a href="currency.html">Currency</a>
@@ -299,7 +373,7 @@
                     <div class="eyebrow">Chennai gold rate</div>
                     <h1 id="heroTitle">Today's gold rate</h1>
                 </div>
-                <div class="hero-date" id="heroDate">Loading…</div>
+                <div class="date-pill" id="heroDate">Loading…</div>
             </div>
             <div class="rates">
                 <div class="rate">
@@ -307,8 +381,8 @@
                     <div class="rate-main num" id="c22">—</div>
                     <span class="chip flat num" id="c22-chg">&nbsp;</span>
                     <div class="rate-sub num">
-                        <span>1 sovereign (8 g) <b id="c22-8">—</b></span>
-                        <span>10 g <b id="c22-10">—</b></span>
+                        <span>1 sovereign (8 g)<b id="c22-8">—</b></span>
+                        <span>10 g<b id="c22-10">—</b></span>
                     </div>
                 </div>
                 <div class="rate">
@@ -316,8 +390,8 @@
                     <div class="rate-main num" id="c24">—</div>
                     <span class="chip flat num" id="c24-chg">&nbsp;</span>
                     <div class="rate-sub num">
-                        <span>8 g <b id="c24-8">—</b></span>
-                        <span>10 g <b id="c24-10">—</b></span>
+                        <span>8 g<b id="c24-8">—</b></span>
+                        <span>10 g<b id="c24-10">—</b></span>
                     </div>
                 </div>
             </div>
@@ -327,28 +401,28 @@
         <!-- Live international prices -->
         <section class="card">
             <div class="card-head">
-                <h2>World market <span>live spot price</span></h2>
+                <h2>World market<span>live spot price</span></h2>
                 <div class="status" id="status"><span class="dot"></span><b id="statusText">Connecting…</b><span id="statusSub"></span></div>
             </div>
-            <div class="tiles">
-                <div class="tile">
-                    <div class="tile-label">Gold · USD per ounce</div>
-                    <div class="tile-value num" id="XAU-price">—</div>
-                    <div class="tile-change num" id="XAU-change"></div>
+            <div class="stats">
+                <div class="stat">
+                    <div class="stat-label">Gold · USD per ounce</div>
+                    <div class="stat-value num" id="XAU-price">—</div>
+                    <div class="stat-change num" id="XAU-change"></div>
                 </div>
-                <div class="tile">
-                    <div class="tile-label">Silver · USD per ounce</div>
-                    <div class="tile-value num" id="XAG-price">—</div>
-                    <div class="tile-change num" id="XAG-change"></div>
+                <div class="stat">
+                    <div class="stat-label">Silver · USD per ounce</div>
+                    <div class="stat-value num" id="XAG-price">—</div>
+                    <div class="stat-change num" id="XAG-change"></div>
                 </div>
-                <div class="tile">
-                    <div class="tile-label">USD → INR <span id="fx-src"></span></div>
-                    <div class="tile-value num" id="fx">—</div>
-                    <div class="tile-change" id="fx-note"></div>
+                <div class="stat">
+                    <div class="stat-label">USD → INR <span id="fx-src"></span></div>
+                    <div class="stat-value num" id="fx">—</div>
+                    <div class="stat-change"></div>
                 </div>
             </div>
             <div class="spot">
-                <div class="spot-title">Spot price in rupees, before any tax or duty</div>
+                <div class="spot-title">Spot price in rupees · before any tax or duty</div>
                 <div class="spot-row num">
                     <div>24K per gram<b id="s24">—</b></div>
                     <div>22K per gram<b id="s22">—</b></div>
@@ -362,7 +436,7 @@
         <!-- History -->
         <section class="card">
             <div class="card-head">
-                <h2>Gold rate history <span>Chennai</span></h2>
+                <h2>Gold rate history<span>Chennai</span></h2>
                 <div class="seg" role="tablist" id="viewTabs">
                     <button role="tab" data-view="day" aria-selected="true">Daily</button>
                     <button role="tab" data-view="month" aria-selected="false">Monthly</button>
@@ -395,8 +469,8 @@
         <!-- Chart (BullionVault) -->
         <section class="card">
             <div class="card-head">
-                <h2>Gold price chart <span>by BullionVault</span></h2>
-                <span class="status">Switch metal, currency and time range inside the chart</span>
+                <h2>Gold price chart<span>live · BullionVault</span></h2>
+                <span class="hint">Pick metal, time range and currency · click the chart to zoom</span>
             </div>
             <div class="chart-box" id="chartBox"><div id="embed"></div></div>
         </section>
@@ -488,7 +562,7 @@
 
         /* ================= live world prices ================= */
 
-        // Daily reference price, so the tiles can show today's change.
+        // Daily reference price, so the stats can show today's change.
         async function loadReference() {
             for (let back = 0; back <= 4; back++) {
                 const date = new Date(Date.now() - back * 86400000).toISOString().slice(0, 10);
@@ -537,7 +611,7 @@
                 const change = price - ref;
                 const pct = change / ref * 100;
                 el.textContent = (change > 0 ? '▲ ' : change < 0 ? '▼ ' : '') + Math.abs(change).toFixed(2) + ' (' + Math.abs(pct).toFixed(2) + '%) today';
-                el.className = 'tile-change num ' + trend(Math.abs(pct) < 0.005 ? 0 : change) + '-t';
+                el.className = 'stat-change num ' + trend(Math.abs(pct) < 0.005 ? 0 : change) + '-t';
                 el.title = 'Against the daily reference price of ' + state.referenceDate + ' (UTC)';
             }
         }
@@ -688,7 +762,7 @@
                     if (!Array.isArray(data.days) || !data.days.length) continue;
                     const days = data.days;
                     // Use whichever copy is newer (the site copy can lag a few minutes).
-                    if (state.days.length && days[days.length - 1][0] < state.days[state.days.length - 1][0]) continue;
+                    if (state.days.length && days[days.length - 1][0] <= state.days[state.days.length - 1][0] && days.length <= state.days.length) continue;
                     const first = !state.days.length;
                     state.days = days;
                     if (first) {
@@ -724,8 +798,8 @@
             const isToday = date === todayIST();
             $('heroTitle').textContent = isToday ? "Today's gold rate" : 'Latest gold rate';
             $('heroDate').textContent = longDate(date) + (isToday ? '' : ' · today\'s rate not out yet');
-            $('c22').innerHTML = inrR.format(k22) + ' <small>/g</small>';
-            $('c24').innerHTML = inrR.format(k24) + ' <small>/g</small>';
+            $('c22').innerHTML = inrR.format(k22) + '<small>/g</small>';
+            $('c24').innerHTML = inrR.format(k24) + '<small>/g</small>';
             $('c22-8').textContent = inrR.format(k22 * 8);
             $('c22-10').textContent = inrR.format(k22 * 10);
             $('c24-8').textContent = inrR.format(k24 * 8);
@@ -871,19 +945,20 @@
             const box = $('spark');
             if (series.length < 2) { box.innerHTML = ''; box.style.display = 'none'; return; }
             box.style.display = '';
-            const W = 1000, H = 120, P = 6;
+            const W = 1000, H = 150, P = 8;
             const vals = series.map(s => s[1]);
             const min = Math.min(...vals), max = Math.max(...vals);
             const x = (i) => i / (series.length - 1) * W;
             const y = (v) => max === min ? H / 2 : P + (1 - (v - min) / (max - min)) * (H - 2 * P);
             const pts = series.map((s, i) => `${x(i).toFixed(1)},${y(s[1]).toFixed(1)}`);
+            const last = pts[pts.length - 1].split(',');
             box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
                 <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0" stop-color="#d4a03a" stop-opacity=".35"/><stop offset="1" stop-color="#d4a03a" stop-opacity="0"/>
+                    <stop offset="0" stop-color="#e9bf5c" stop-opacity=".3"/><stop offset="1" stop-color="#e9bf5c" stop-opacity="0"/>
                 </linearGradient></defs>
                 <path d="M0,${H} L${pts.join(' L')} L${W},${H} Z" fill="url(#sg)"/>
-                <polyline points="${pts.join(' ')}" fill="none" stroke="#b8862b" stroke-width="2.2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
-                <line id="sparkLine" x1="0" x2="0" y1="0" y2="${H}" stroke="#b8862b" stroke-opacity=".4" vector-effect="non-scaling-stroke" visibility="hidden"/>
+                <polyline points="${pts.join(' ')}" fill="none" stroke="#e9bf5c" stroke-width="2.4" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
+                <line id="sparkLine" x1="0" x2="0" y1="0" y2="${H}" stroke="#fbe7ae" stroke-opacity=".35" vector-effect="non-scaling-stroke" visibility="hidden"/>
             </svg><div class="spark-tip num" id="sparkTip"></div>`;
             const tip = $('sparkTip');
             const line = $('sparkLine');
@@ -965,7 +1040,8 @@
         setInterval(() => { if (!document.hidden) refreshHistory(); }, HISTORY_REFRESH_MS);
         setInterval(renderStatus, 1000);
 
-        // BullionVault chart (third-party script, loaded with defer)
+        // BullionVault chart (third-party script, loaded with defer). Same source and
+        // settings as before; only the CSS above changes how it looks.
         window.addEventListener('load', () => {
             $('chartBox').classList.add('ready');
             if (typeof BullionVaultChart === 'undefined') {
