@@ -3,560 +3,454 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Live Gold & Silver Prices (USD & INR)</title>
-    <meta name="description" content="Live gold, silver, platinum and palladium spot prices in USD, with Indian rupee prices per gram for 24K and 22K gold.">
+    <title>Gold Rate Today in Chennai · Live Gold &amp; Silver Prices</title>
+    <meta name="description" content="Chennai 22K and 24K gold rate today, gold rate history by day, month and year, and live international gold and silver prices.">
+    <meta name="theme-color" content="#16120c">
     <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/2536/2536800.png" type="image/png" />
     <script type="text/javascript" src="https://www.bullionvault.com/chart/bullionvaultchart.js" defer></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            --bg: #f5f1e8;
+            --card: #fffdf8;
+            --ink: #1d1a15;
+            --muted: #786f62;
+            --line: #e8e0d0;
+            --gold: #b8862b;
+            --gold-soft: #f3e6c4;
+            --up: #12804a;
+            --down: #c43d3d;
+            --radius: 18px;
+            --shadow: 0 1px 2px rgba(60, 40, 10, .05), 0 8px 28px rgba(60, 40, 10, .07);
         }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: #1a1d2e;
-            color: #e0e0e0;
-            min-height: 100vh;
-            padding: 20px;
+            font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--ink);
+            line-height: 1.5;
+            -webkit-font-smoothing: antialiased;
         }
 
-        .container {
-            max-width: 1600px;
-            margin: 0 auto;
-        }
+        .num { font-variant-numeric: tabular-nums; }
+        .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
 
-        /* Shared site navigation */
-        .site-nav {
+        /* ---------- top bar ---------- */
+        .top {
             display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            justify-content: center;
-            margin-bottom: 25px;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 18px 0;
         }
-
-        .site-nav a {
-            color: #9aa4c7;
-            text-decoration: none;
-            padding: 7px 14px;
-            border-radius: 999px;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            font-size: 0.9em;
-            transition: all 0.2s ease;
-        }
-
-        .site-nav a:hover {
-            color: #fff;
-            border-color: rgba(0, 255, 255, 0.4);
-        }
-
-        .site-nav a[aria-current="page"] {
-            color: #1a1d2e;
-            background: linear-gradient(45deg, #00ffff, #ffd700);
-            border-color: transparent;
-            font-weight: 600;
-        }
-
-        h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 2.5em;
-            background: linear-gradient(45deg, #00ffff, #ffd700);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 600;
-        }
-
-        .status-bar {
-            text-align: center;
-            padding: 12px;
-            background: rgba(0, 255, 255, 0.05);
-            border-radius: 10px;
-            border: 1px solid rgba(0, 255, 255, 0.2);
-            margin-bottom: 30px;
-            font-size: 0.95em;
-        }
-
-        .status-bar.delayed {
-            background: rgba(255, 170, 0, 0.07);
-            border-color: rgba(255, 170, 0, 0.35);
-        }
-
-        .status-bar.offline {
-            background: rgba(255, 68, 68, 0.07);
-            border-color: rgba(255, 68, 68, 0.35);
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #00ff88;
-            margin-right: 8px;
-            animation: pulse 2s ease-in-out infinite;
-        }
-
-        .delayed .status-indicator { background: #ffaa00; }
-        .offline .status-indicator { background: #ff4444; animation: none; }
-
-        .status-sub {
-            color: #888;
-            margin-left: 10px;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-
-        .price-summary {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-            gap: 20px;
-            margin-bottom: 20px;
-        }
-
-        .summary-card {
-            background: linear-gradient(135deg, #242938 0%, #1e2230 100%);
-            border-radius: 20px;
-            padding: 25px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-
-        .summary-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 15px 50px rgba(0, 255, 255, 0.2);
-        }
-
-        .summary-card.gold { border-left: 4px solid #ffd700; }
-        .summary-card.silver { border-left: 4px solid #c0c0c0; }
-        .summary-card.platinum { border-left: 4px solid #a8d8e8; }
-        .summary-card.palladium { border-left: 4px solid #cfa9e8; }
-
-        .card-header {
+        .brand {
             display: flex;
             align-items: center;
             gap: 10px;
-            margin-bottom: 10px;
-        }
-
-        .metal-icon {
-            font-size: 2em;
-        }
-
-        .metal-name {
-            font-size: 1.4em;
-            font-weight: 600;
-        }
-
-        .metal-unit {
-            margin-left: auto;
-            font-size: 0.8em;
-            color: #777;
-        }
-
-        .gold .metal-name { color: #ffd700; }
-        .silver .metal-name { color: #c0c0c0; }
-        .platinum .metal-name { color: #a8d8e8; }
-        .palladium .metal-name { color: #cfa9e8; }
-
-        .price-large {
-            font-size: 2.6em;
             font-weight: 700;
-            color: #00ffff;
-            margin: 10px 0;
-            text-shadow: 0 0 20px rgba(0, 255, 255, 0.3);
-            font-variant-numeric: tabular-nums;
+            font-size: 1.05rem;
+            letter-spacing: .2px;
+            color: var(--ink);
+            text-decoration: none;
+        }
+        .brand-mark {
+            width: 26px;
+            height: 26px;
             border-radius: 8px;
+            background: linear-gradient(135deg, #f6dc8c, #c8962f 55%, #8e6219);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5);
         }
-
-        .price-label {
-            font-size: 0.9em;
-            color: #888;
-            margin-bottom: 5px;
+        .site-nav { display: flex; gap: 4px; background: #ebe4d6; padding: 4px; border-radius: 999px; }
+        .site-nav a {
+            color: var(--muted);
+            text-decoration: none;
+            font-size: .9rem;
+            padding: 6px 14px;
+            border-radius: 999px;
+            transition: color .2s, background .2s;
         }
+        .site-nav a:hover { color: var(--ink); }
+        .site-nav a[aria-current="page"] { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
 
-        .change-info {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 15px;
-            font-size: 1.1em;
-            margin-top: 10px;
-            font-variant-numeric: tabular-nums;
+        /* ---------- hero: Chennai rate ---------- */
+        .hero {
+            position: relative;
+            overflow: hidden;
+            border-radius: 24px;
+            padding: 30px 32px 24px;
+            color: #f7efe0;
+            background:
+                radial-gradient(600px 260px at 85% -10%, rgba(232, 182, 80, .28), transparent 70%),
+                radial-gradient(500px 240px at -5% 110%, rgba(232, 182, 80, .14), transparent 70%),
+                linear-gradient(160deg, #221a10, #120f0a);
+            box-shadow: 0 20px 50px rgba(40, 25, 5, .25);
         }
+        .hero-head { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 6px 16px; }
+        .eyebrow { font-size: .78rem; letter-spacing: 1.6px; text-transform: uppercase; color: #d9b768; font-weight: 600; }
+        .hero h1 { font-size: 1.6rem; font-weight: 650; margin-top: 4px; letter-spacing: -.2px; }
+        .hero-date { color: #b5a68c; font-size: .92rem; }
 
-        .change-ref {
-            font-size: 0.8em;
-            color: #666;
-            text-align: center;
-            margin-bottom: 25px;
+        .rates { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+        .rate {
+            border-radius: 16px;
+            padding: 20px 22px;
+            background: rgba(255, 255, 255, .045);
+            border: 1px solid rgba(232, 196, 120, .16);
         }
+        .rate-label { display: flex; align-items: center; gap: 10px; color: #cdbd9f; font-size: .92rem; }
+        .karat {
+            font-weight: 700;
+            font-size: .8rem;
+            color: #1b150c;
+            background: linear-gradient(135deg, #f8e3a3, #d3a240);
+            border-radius: 6px;
+            padding: 2px 7px;
+        }
+        .rate-main {
+            font-size: clamp(2.1rem, 5.4vw, 3rem);
+            font-weight: 700;
+            letter-spacing: -1px;
+            margin: 6px 0 2px;
+            background: linear-gradient(180deg, #fff3cf, #e2b552);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+        .rate-main small { font-size: .38em; font-weight: 500; letter-spacing: 0; color: #b5a68c; -webkit-text-fill-color: #b5a68c; }
+        .rate-sub { display: flex; flex-wrap: wrap; gap: 4px 18px; color: #b5a68c; font-size: .9rem; margin-top: 8px; }
+        .rate-sub b { color: #f0e4cc; font-weight: 600; }
 
-        .change-positive { color: #00ff88; }
-        .change-negative { color: #ff4444; }
-        .change-flat { color: #888; }
+        .chip { display: inline-block; font-size: .82rem; font-weight: 600; border-radius: 999px; padding: 2px 10px; }
+        .chip.up { color: #6ee7a6; background: rgba(46, 204, 113, .12); }
+        .chip.down { color: #ff9b9b; background: rgba(231, 76, 60, .14); }
+        .chip.flat { color: #cdbd9f; background: rgba(255, 255, 255, .07); }
 
-        /* Brief flash when a price moves */
+        .hero-note { margin-top: 18px; font-size: .84rem; color: #9d8f77; }
+        .hero-note a { color: #d9b768; }
+
+        /* ---------- cards ---------- */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--line);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 24px;
+            margin-top: 22px;
+        }
+        .card-head { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px 16px; margin-bottom: 18px; }
+        .card h2 { font-size: 1.15rem; font-weight: 650; letter-spacing: -.1px; }
+        .card h2 span { color: var(--muted); font-weight: 400; font-size: .9rem; margin-left: 6px; }
+
+        /* live status pill */
+        .status { display: inline-flex; align-items: center; gap: 8px; font-size: .85rem; color: var(--muted); }
+        .status b { color: var(--ink); font-weight: 600; }
+        .dot { width: 8px; height: 8px; border-radius: 50%; background: #b9b0a0; }
+        .status.live .dot { background: #18a35a; box-shadow: 0 0 0 0 rgba(24, 163, 90, .5); animation: pulse 2s infinite; }
+        .status.delayed .dot { background: #e0a106; }
+        .status.offline .dot { background: var(--down); }
+        @keyframes pulse { 70% { box-shadow: 0 0 0 7px rgba(24, 163, 90, 0); } 100% { box-shadow: 0 0 0 0 rgba(24, 163, 90, 0); } }
+
+        .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+        .tile { border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; background: #fffaf0; }
+        .tile-label { font-size: .82rem; color: var(--muted); }
+        .tile-value { font-size: 1.5rem; font-weight: 700; letter-spacing: -.4px; margin: 2px 0; }
+        .tile-change { font-size: .85rem; font-weight: 600; min-height: 1.3em; }
+        .up-t { color: var(--up); }
+        .down-t { color: var(--down); }
+        .flat-t { color: var(--muted); }
+
+        .spot { margin-top: 14px; border-radius: 14px; background: #faf5ea; padding: 14px 16px; }
+        .spot-title { font-size: .82rem; color: var(--muted); margin-bottom: 8px; }
+        .spot-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .spot-row div { font-size: .82rem; color: var(--muted); }
+        .spot-row b { display: block; color: var(--ink); font-size: 1.05rem; font-weight: 650; }
+        .spot-note { margin-top: 10px; font-size: .82rem; color: var(--muted); }
+
         .tick-up { animation: tickUp 1.2s ease-out; }
         .tick-down { animation: tickDown 1.2s ease-out; }
+        @keyframes tickUp { 0% { color: var(--up); } 100% { color: inherit; } }
+        @keyframes tickDown { 0% { color: var(--down); } 100% { color: inherit; } }
 
-        @keyframes tickUp {
-            0% { background: rgba(0, 255, 136, 0.35); }
-            100% { background: transparent; }
+        /* ---------- history ---------- */
+        .seg { display: inline-flex; background: #f0e9db; border-radius: 10px; padding: 3px; gap: 2px; }
+        .seg button {
+            border: 0;
+            background: transparent;
+            font: inherit;
+            font-size: .88rem;
+            color: var(--muted);
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
         }
+        .seg button[aria-selected="true"] { background: var(--card); color: var(--ink); font-weight: 600; box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
 
-        @keyframes tickDown {
-            0% { background: rgba(255, 68, 68, 0.35); }
-            100% { background: transparent; }
-        }
-
-        /* India card */
-        .india-card {
-            background: linear-gradient(135deg,
-                #ff9933 0%,
-                #ff9933 33%,
-                #ffffff 33%,
-                #ffffff 66%,
-                #138808 66%,
-                #138808 100%) left / 4px 100% no-repeat,
-                linear-gradient(135deg, #242938 0%, #1e2230 100%);
-            border-radius: 20px;
-            padding: 25px 25px 25px 29px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            margin-bottom: 30px;
-        }
-
-        .india-card .metal-name {
-            background: linear-gradient(90deg, #ff9933 0%, #ffffff 50%, #138808 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            font-weight: 700;
-        }
-
-        .india-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
-        }
-
-        .india-item {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 12px;
-            padding: 15px;
-        }
-
-        .india-value {
-            font-size: 1.9em;
-            font-weight: 700;
-            margin-top: 4px;
-            font-variant-numeric: tabular-nums;
-            border-radius: 6px;
-        }
-
-        .india-value.gold-text {
-            color: #ffd700;
-            text-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
-        }
-
-        .india-value.silver-text {
-            color: #c0c0c0;
-            text-shadow: 0 0 15px rgba(192, 192, 192, 0.3);
-        }
-
-        .india-value.fx-text {
-            color: #00d4ff;
-        }
-
-        .india-note {
-            margin-top: 15px;
-            font-size: 0.85em;
-            color: #888;
-            line-height: 1.5;
-        }
-
-        .chart-section {
-            background: linear-gradient(135deg, #242938 0%, #1e2230 100%);
-            border-radius: 20px;
-            padding: 30px;
-            margin-bottom: 30px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .chart-title {
-            font-size: 1.6em;
-            color: #00ffff;
-            margin-bottom: 20px;
-            font-weight: 600;
-        }
-
-        .chart-container {
-            width: 100%;
-            min-height: 500px;
-            background: #1a1d2e;
+        .controls { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+        .period { display: flex; align-items: center; gap: 6px; }
+        .period select, .icon-btn {
+            font: inherit;
+            font-size: .9rem;
+            color: var(--ink);
+            background: var(--card);
+            border: 1px solid var(--line);
             border-radius: 10px;
-            overflow-x: auto;
-            overflow-y: hidden;
+            height: 36px;
+        }
+        .period select { padding: 0 8px; cursor: pointer; }
+        .icon-btn { width: 36px; cursor: pointer; font-size: 1rem; }
+        .icon-btn:disabled { opacity: .35; cursor: default; }
+
+        .summary { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-bottom: 14px; }
+        .summary div { background: #faf5ea; border-radius: 12px; padding: 10px 12px; font-size: .78rem; color: var(--muted); }
+        .summary b { display: block; font-size: 1rem; color: var(--ink); font-weight: 650; }
+
+        .spark { position: relative; height: 120px; margin-bottom: 8px; }
+        .spark svg { width: 100%; height: 100%; display: block; overflow: visible; }
+        .spark-tip {
+            position: absolute;
+            top: 0;
+            transform: translateX(-50%);
+            background: var(--ink);
+            color: #fff;
+            font-size: .78rem;
+            padding: 3px 8px;
+            border-radius: 6px;
+            pointer-events: none;
+            white-space: nowrap;
+            opacity: 0;
+            transition: opacity .15s;
         }
 
-        .chart-error {
-            padding: 40px;
-            text-align: center;
-            color: #888;
+        .table-wrap { max-height: 460px; overflow: auto; border: 1px solid var(--line); border-radius: 12px; }
+        table { width: 100%; border-collapse: collapse; font-size: .92rem; }
+        th, td { padding: 10px 14px; text-align: right; white-space: nowrap; }
+        th:first-child, td:first-child { text-align: left; }
+        thead th {
+            position: sticky;
+            top: 0;
+            background: #f7f1e4;
+            font-size: .78rem;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: .5px;
         }
+        tbody tr + tr td { border-top: 1px solid #f1ebdf; }
+        tbody tr:hover td { background: #fcf8ef; }
+        td.date { color: var(--muted); }
+        .empty { padding: 30px; text-align: center; color: var(--muted); }
 
-        #embed {
-            width: 100% !important;
-            min-width: 800px;
-            height: 500px !important;
-            min-height: 500px;
+        /* ---------- chart ---------- */
+        .chart-box {
+            position: relative;
+            height: 470px;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            background: linear-gradient(90deg, #faf6ee 0%, #f3ecdf 50%, #faf6ee 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.6s linear infinite;
         }
+        .chart-box.ready { animation: none; background: #fff; }
+        @keyframes shimmer { to { background-position: -200% 0; } }
+        #embed { width: 100%; height: 100%; }
+        #embed .bvchart { border: 0 !important; }
+        .chart-error { display: flex; align-items: center; justify-content: center; height: 100%; color: var(--muted); }
 
-        .footer {
-            text-align: center;
-            color: #666;
-            font-size: 0.85em;
-            margin-top: 30px;
-            line-height: 1.6;
-        }
+        footer { padding: 30px 0 40px; color: var(--muted); font-size: .82rem; text-align: center; }
+        footer a { color: var(--gold); }
+        footer p + p { margin-top: 6px; }
 
-        .footer a {
-            color: #8899bb;
-        }
-
-        @media (max-width: 768px) {
-            h1 {
-                font-size: 1.8em;
-            }
-
-            .chart-container {
-                min-height: 400px;
-                overflow-x: scroll;
-                -webkit-overflow-scrolling: touch;
-            }
-
-            #embed {
-                min-width: 700px;
-                height: 400px !important;
-                min-height: 400px;
-            }
-
-            .price-large {
-                font-size: 2.2em;
-            }
-
-            .chart-title {
-                font-size: 1.3em;
-            }
-
-            .chart-section {
-                padding: 20px 15px;
-            }
-
-            .status-sub {
-                display: block;
-                margin: 4px 0 0;
-            }
-        }
-
-        @media (max-width: 480px) {
-            body {
-                padding: 12px;
-            }
-
-            .chart-container {
-                min-height: 350px;
-            }
-
-            #embed {
-                min-width: 600px;
-                height: 350px !important;
-                min-height: 350px;
-            }
-
-            .summary-card, .india-card {
-                padding: 20px;
-            }
-
-            .price-large {
-                font-size: 2em;
-            }
-
-            .india-value {
-                font-size: 1.6em;
-            }
+        @media (max-width: 760px) {
+            .wrap { padding: 0 14px; }
+            .hero { padding: 22px 18px 18px; border-radius: 20px; }
+            .hero h1 { font-size: 1.3rem; }
+            .rates { grid-template-columns: 1fr; gap: 12px; margin-top: 18px; }
+            .card { padding: 18px 14px; }
+            .tiles { grid-template-columns: 1fr 1fr; }
+            .tiles .tile:last-child { grid-column: span 2; }
+            .spot-row, .summary { grid-template-columns: 1fr 1fr; }
+            .hide-sm { display: none; }
+            th, td { padding: 9px 8px; }
+            table { font-size: .86rem; }
+            .chart-box { height: 400px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .status-indicator, .tick-up, .tick-down { animation: none; }
-            .summary-card:hover { transform: none; }
+            *, *::before, *::after { animation: none !important; transition: none !important; }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <nav class="site-nav">
-            <a href="./" aria-current="page">🥇 Gold &amp; Silver</a>
-            <a href="currency.html">💱 Currency</a>
-        </nav>
+    <div class="wrap">
+        <header class="top">
+            <a class="brand" href="./"><span class="brand-mark"></span>Gold Rate</a>
+            <nav class="site-nav">
+                <a href="./" aria-current="page">Gold &amp; Silver</a>
+                <a href="currency.html">Currency</a>
+            </nav>
+        </header>
 
-        <h1>⚡ Live Precious Metals Monitor</h1>
-
-        <div class="status-bar" id="statusBar" role="status">
-            <span class="status-indicator"></span>
-            <span id="statusText">Connecting…</span>
-            <span class="status-sub" id="statusSub"></span>
-        </div>
-
-        <div class="price-summary">
-            <div class="summary-card gold">
-                <div class="card-header">
-                    <span class="metal-icon">🥇</span>
-                    <span class="metal-name">GOLD</span>
-                    <span class="metal-unit">USD / troy oz</span>
+        <!-- Chennai board rate (livechennai.com) -->
+        <section class="hero">
+            <div class="hero-head">
+                <div>
+                    <div class="eyebrow">Chennai gold rate</div>
+                    <h1 id="heroTitle">Today's gold rate</h1>
                 </div>
-                <div class="price-large" id="XAU-price">—</div>
-                <div class="change-info">
-                    <span id="XAU-change"></span>
-                    <span id="XAU-pct"></span>
+                <div class="hero-date" id="heroDate">Loading…</div>
+            </div>
+            <div class="rates">
+                <div class="rate">
+                    <div class="rate-label"><span class="karat">22K</span> Jewellery gold · per gram</div>
+                    <div class="rate-main num" id="c22">—</div>
+                    <span class="chip flat num" id="c22-chg">&nbsp;</span>
+                    <div class="rate-sub num">
+                        <span>1 sovereign (8 g) <b id="c22-8">—</b></span>
+                        <span>10 g <b id="c22-10">—</b></span>
+                    </div>
+                </div>
+                <div class="rate">
+                    <div class="rate-label"><span class="karat">24K</span> Pure gold · per gram</div>
+                    <div class="rate-main num" id="c24">—</div>
+                    <span class="chip flat num" id="c24-chg">&nbsp;</span>
+                    <div class="rate-sub num">
+                        <span>8 g <b id="c24-8">—</b></span>
+                        <span>10 g <b id="c24-10">—</b></span>
+                    </div>
                 </div>
             </div>
+            <p class="hero-note">Chennai jewellery board rate from <a href="https://www.livechennai.com/gold_rate_history.asp" target="_blank" rel="noopener">livechennai.com</a>. It includes import duty. GST (3%) and making charges are added at the shop.</p>
+        </section>
 
-            <div class="summary-card silver">
-                <div class="card-header">
-                    <span class="metal-icon">🥈</span>
-                    <span class="metal-name">SILVER</span>
-                    <span class="metal-unit">USD / troy oz</span>
+        <!-- Live international prices -->
+        <section class="card">
+            <div class="card-head">
+                <h2>World market <span>live spot price</span></h2>
+                <div class="status" id="status"><span class="dot"></span><b id="statusText">Connecting…</b><span id="statusSub"></span></div>
+            </div>
+            <div class="tiles">
+                <div class="tile">
+                    <div class="tile-label">Gold · USD per ounce</div>
+                    <div class="tile-value num" id="XAU-price">—</div>
+                    <div class="tile-change num" id="XAU-change"></div>
                 </div>
-                <div class="price-large" id="XAG-price">—</div>
-                <div class="change-info">
-                    <span id="XAG-change"></span>
-                    <span id="XAG-pct"></span>
+                <div class="tile">
+                    <div class="tile-label">Silver · USD per ounce</div>
+                    <div class="tile-value num" id="XAG-price">—</div>
+                    <div class="tile-change num" id="XAG-change"></div>
+                </div>
+                <div class="tile">
+                    <div class="tile-label">USD → INR <span id="fx-src"></span></div>
+                    <div class="tile-value num" id="fx">—</div>
+                    <div class="tile-change" id="fx-note"></div>
                 </div>
             </div>
-
-            <div class="summary-card platinum">
-                <div class="card-header">
-                    <span class="metal-icon">⚪</span>
-                    <span class="metal-name">PLATINUM</span>
-                    <span class="metal-unit">USD / troy oz</span>
+            <div class="spot">
+                <div class="spot-title">Spot price in rupees, before any tax or duty</div>
+                <div class="spot-row num">
+                    <div>24K per gram<b id="s24">—</b></div>
+                    <div>22K per gram<b id="s22">—</b></div>
+                    <div>Silver per gram<b id="sAg">—</b></div>
+                    <div>Silver per kg<b id="sAgKg">—</b></div>
                 </div>
-                <div class="price-large" id="XPT-price">—</div>
-                <div class="change-info">
-                    <span id="XPT-change"></span>
-                    <span id="XPT-pct"></span>
+                <p class="spot-note" id="premium">Plain conversion: USD per ounce × USD→INR ÷ 31.1035 g. No tax, duty or GST.</p>
+            </div>
+        </section>
+
+        <!-- History -->
+        <section class="card">
+            <div class="card-head">
+                <h2>Gold rate history <span>Chennai</span></h2>
+                <div class="seg" role="tablist" id="viewTabs">
+                    <button role="tab" data-view="day" aria-selected="true">Daily</button>
+                    <button role="tab" data-view="month" aria-selected="false">Monthly</button>
+                    <button role="tab" data-view="year" aria-selected="false">Yearly</button>
                 </div>
             </div>
-
-            <div class="summary-card palladium">
-                <div class="card-header">
-                    <span class="metal-icon">🔘</span>
-                    <span class="metal-name">PALLADIUM</span>
-                    <span class="metal-unit">USD / troy oz</span>
+            <div class="controls">
+                <div class="period">
+                    <button class="icon-btn" id="prev" aria-label="Previous">‹</button>
+                    <select id="selMonth" aria-label="Month"></select>
+                    <select id="selYear" aria-label="Year"></select>
+                    <button class="icon-btn" id="next" aria-label="Next">›</button>
                 </div>
-                <div class="price-large" id="XPD-price">—</div>
-                <div class="change-info">
-                    <span id="XPD-change"></span>
-                    <span id="XPD-pct"></span>
-                </div>
-            </div>
-        </div>
-
-        <div class="change-ref" id="changeRef"></div>
-
-        <div class="india-card">
-            <div class="card-header">
-                <span class="metal-icon">🇮🇳</span>
-                <span class="metal-name">INDIA PRICES (INR)</span>
-            </div>
-            <div class="india-grid">
-                <div class="india-item">
-                    <div class="price-label"><span style="color: #ffd700;">●</span> Gold 24K (99.9%) / gram</div>
-                    <div class="india-value gold-text" id="inr-g24">—</div>
-                </div>
-                <div class="india-item">
-                    <div class="price-label"><span style="color: #ffd700;">●</span> Gold 22K (91.6%) / gram</div>
-                    <div class="india-value gold-text" id="inr-g22">—</div>
-                </div>
-                <div class="india-item">
-                    <div class="price-label"><span style="color: #ffd700;">●</span> Gold 24K / 10 grams</div>
-                    <div class="india-value gold-text" id="inr-g24x10">—</div>
-                </div>
-                <div class="india-item">
-                    <div class="price-label"><span style="color: #c0c0c0;">●</span> Silver / gram</div>
-                    <div class="india-value silver-text" id="inr-s1">—</div>
-                </div>
-                <div class="india-item">
-                    <div class="price-label"><span style="color: #c0c0c0;">●</span> Silver / kg</div>
-                    <div class="india-value silver-text" id="inr-skg">—</div>
-                </div>
-                <div class="india-item">
-                    <div class="price-label"><span style="color: #00d4ff;">●</span> USD → INR rate <span id="inr-fx-src"></span></div>
-                    <div class="india-value fx-text" id="inr-fx">—</div>
+                <div class="seg" id="unitTabs" role="tablist" aria-label="Weight">
+                    <button role="tab" data-unit="1" aria-selected="true">1 g</button>
+                    <button role="tab" data-unit="8" aria-selected="false">8 g</button>
+                    <button role="tab" data-unit="10" aria-selected="false">10 g</button>
                 </div>
             </div>
-            <div class="india-note">
-                Pure conversion: USD price per troy ounce × USD→INR rate ÷ 31.1035 grams.
-                No tax, import duty, GST or making charges are added.
+            <div class="summary num" id="summary"></div>
+            <div class="spark" id="spark"></div>
+            <div class="table-wrap">
+                <table class="num">
+                    <thead id="thead"></thead>
+                    <tbody id="tbody"><tr><td class="empty" colspan="5">Loading history…</td></tr></tbody>
+                </table>
             </div>
-        </div>
+        </section>
 
-        <div class="chart-section">
-            <div class="chart-title">🚀 Live Price Chart <span style="font-size: 0.7em; color: #888; font-weight: normal;">(Swipe to scroll on mobile)</span></div>
-            <div class="chart-container">
-                <div id="embed"></div>
+        <!-- Chart (BullionVault) -->
+        <section class="card">
+            <div class="card-head">
+                <h2>Gold price chart <span>by BullionVault</span></h2>
+                <span class="status">Switch metal, currency and time range inside the chart</span>
             </div>
-        </div>
+            <div class="chart-box" id="chartBox"><div id="embed"></div></div>
+        </section>
 
-        <div class="footer">
-            Prices refresh every 15 seconds while this tab is open.<br>
-            Data (same sources as the Minnal app): <a href="https://gold-api.com" target="_blank" rel="noopener">gold-api.com</a> (live spot and USD→INR),
-            <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">ExchangeRate-API</a> (backup USD→INR),
-            <a href="https://github.com/fawazahmed0/exchange-api" target="_blank" rel="noopener">exchange-api</a> (daily reference),
-            chart by <a href="https://www.bullionvault.com" target="_blank" rel="noopener">BullionVault</a>.
-            For information only — not financial advice.
-        </div>
+        <footer>
+            <p>Chennai rates: <a href="https://www.livechennai.com/gold_rate_history.asp" target="_blank" rel="noopener">livechennai.com</a>, copied every 30 minutes. Live prices: <a href="https://gold-api.com" target="_blank" rel="noopener">gold-api.com</a>. Backup INR rate: <a href="https://www.exchangerate-api.com" target="_blank" rel="noopener">ExchangeRate-API</a>. Daily reference: <a href="https://github.com/fawazahmed0/exchange-api" target="_blank" rel="noopener">exchange-api</a>. Chart: <a href="https://www.bullionvault.com" target="_blank" rel="noopener">BullionVault</a>.</p>
+            <p>For information only. Check with your jeweller before you buy or sell.</p>
+        </footer>
     </div>
 
-    <script type="text/javascript">
+    <script>
         const API = 'https://api.gold-api.com/price/';
-        const METALS = ['XAU', 'XAG', 'XPT', 'XPD'];
+        const METALS = ['XAU', 'XAG'];
         const GRAMS_PER_OZ = 31.1034768;
-        const POLL_MS = 15000;          // the source updates about every 30 s
-        const STALE_MS = 60000;         // no good fetch for 1 min -> "Delayed"
+        const POLL_MS = 15000;              // the source updates about every 30 s
+        const STALE_MS = 60000;             // no good fetch for 1 min -> "Delayed"
         const REF_REFRESH_MS = 60 * 60 * 1000;
+        const HISTORY_REFRESH_MS = 10 * 60 * 1000;
+        const HISTORY_URLS = [
+            'data/chennai-gold.json',
+            'https://raw.githubusercontent.com/manoselva/manoselva.github.io/main/data/chennai-gold.json'
+        ];
 
         const usd = new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' });
         const inr = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 2 });
+        const inrR = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', minimumFractionDigits: 0, maximumFractionDigits: 2 });
         const inr0 = new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 });
+        const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        const MONTHS_LONG = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+        const $ = (id) => document.getElementById(id);
 
         const state = {
-            prices: {},       // symbol -> USD per oz
-            reference: {},    // symbol -> USD per oz from the daily snapshot
+            prices: {},           // symbol -> USD per oz
+            reference: {},        // symbol -> USD per oz from the daily snapshot
             referenceDate: null,
             usdInr: null,
             usdInrSource: null,   // 'live' (gold-api) or 'daily' (open.er-api)
             dailyInrFetched: 0,
-            lastIndia: {},
+            lastSpot: {},
             lastSuccess: 0,
             sourceTime: null,
             lastError: null,
-            pollTimer: null
+            pollTimer: null,
+            days: [],             // [date, 24K, 22K] per gram, oldest first
+            view: 'day',
+            unit: 1,
+            year: null,
+            month: null
         };
 
-        const $ = (id) => document.getElementById(id);
-
-        async function getJSON(url) {
+        async function getJSON(url, cache = 'no-store') {
             // A hung request must not block the next refresh.
-            const response = await fetch(url, { cache: 'no-store', signal: AbortSignal.timeout(8000) });
+            const response = await fetch(url, { cache, signal: AbortSignal.timeout(8000) });
             if (!response.ok) throw new Error(url + ' returned HTTP ' + response.status);
             return response.json();
         }
@@ -575,8 +469,26 @@
             return (n > 0 ? '+' : n < 0 ? '−' : '') + Math.abs(n).toFixed(digits);
         }
 
-        // Daily reference price, so the cards can show today's change.
-        // Uses the newest daily snapshot (today, else the days before).
+        function trend(n) {
+            return Math.abs(n) < 1e-9 ? 'flat' : n > 0 ? 'up' : 'down';
+        }
+
+        function parseDate(iso) {
+            const [y, m, d] = iso.split('-').map(Number);
+            return new Date(Date.UTC(y, m - 1, d));
+        }
+
+        function longDate(iso) {
+            return parseDate(iso).toLocaleDateString('en-IN', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+        }
+
+        function todayIST() {
+            return new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
+        }
+
+        /* ================= live world prices ================= */
+
+        // Daily reference price, so the tiles can show today's change.
         async function loadReference() {
             for (let back = 0; back <= 4; back++) {
                 const date = new Date(Date.now() - back * 86400000).toISOString().slice(0, 10);
@@ -589,12 +501,7 @@
                         const data = await getJSON(url);
                         const r = data.usd;
                         if (!r || !r.xau || !r.xag) continue;
-                        state.reference = {
-                            XAU: 1 / r.xau,
-                            XAG: 1 / r.xag,
-                            XPT: r.xpt ? 1 / r.xpt : null,
-                            XPD: r.xpd ? 1 / r.xpd : null
-                        };
+                        state.reference = { XAU: 1 / r.xau, XAG: 1 / r.xag };
                         state.referenceDate = data.date || date;
                         renderChanges();
                         return;
@@ -625,48 +532,51 @@
             for (const sym of METALS) {
                 const price = state.prices[sym];
                 const ref = state.reference[sym];
-                const changeEl = $(sym + '-change');
-                const pctEl = $(sym + '-pct');
-                if (price == null || !ref) {
-                    changeEl.textContent = '';
-                    pctEl.textContent = '';
-                    continue;
-                }
+                const el = $(sym + '-change');
+                if (price == null || !ref) { el.textContent = ''; continue; }
                 const change = price - ref;
-                const pct = (change / ref) * 100;
-                const cls = Math.abs(pct) < 0.005 ? 'change-flat' : change > 0 ? 'change-positive' : 'change-negative';
-                changeEl.textContent = signed(change, 2);
-                pctEl.textContent = signed(pct, 2) + '%';
-                changeEl.className = cls;
-                pctEl.className = cls;
-            }
-            if (state.referenceDate) {
-                $('changeRef').textContent = 'Change is measured against the daily reference price of ' + state.referenceDate + ' (UTC).';
+                const pct = change / ref * 100;
+                el.textContent = (change > 0 ? '▲ ' : change < 0 ? '▼ ' : '') + Math.abs(change).toFixed(2) + ' (' + Math.abs(pct).toFixed(2) + '%) today';
+                el.className = 'tile-change num ' + trend(Math.abs(pct) < 0.005 ? 0 : change) + '-t';
+                el.title = 'Against the daily reference price of ' + state.referenceDate + ' (UTC)';
             }
         }
 
-        function renderIndia() {
+        function renderSpot() {
             const gold = state.prices.XAU;
             const silver = state.prices.XAG;
             const fx = state.usdInr;
             if (!fx) return;
-            const prev = state.lastIndia;
+            const prev = state.lastSpot;
             const now = { fx };
             if (gold != null) {
                 now.g24 = gold * fx / GRAMS_PER_OZ;
                 now.g22 = now.g24 * 22 / 24;
-                setValue($('inr-g24'), inr.format(now.g24), prev.g24, now.g24);
-                setValue($('inr-g22'), inr.format(now.g22), prev.g22, now.g22);
-                setValue($('inr-g24x10'), inr0.format(now.g24 * 10), prev.g24, now.g24);
+                setValue($('s24'), inr.format(now.g24), prev.g24, now.g24);
+                setValue($('s22'), inr.format(now.g22), prev.g22, now.g22);
             }
             if (silver != null) {
                 now.s1 = silver * fx / GRAMS_PER_OZ;
-                setValue($('inr-s1'), inr.format(now.s1), prev.s1, now.s1);
-                setValue($('inr-skg'), inr0.format(now.s1 * 1000), prev.s1, now.s1);
+                setValue($('sAg'), inr.format(now.s1), prev.s1, now.s1);
+                setValue($('sAgKg'), inr0.format(now.s1 * 1000), prev.s1, now.s1);
             }
-            setValue($('inr-fx'), '₹' + fx.toFixed(3), prev.fx, fx);
-            $('inr-fx-src').textContent = state.usdInrSource === 'daily' ? '(daily rate)' : '(live)';
-            state.lastIndia = now;
+            setValue($('fx'), '₹' + fx.toFixed(3), prev.fx, fx);
+            $('fx-src').textContent = state.usdInrSource === 'daily' ? '· daily rate' : '· live';
+            state.lastSpot = now;
+            renderPremium();
+        }
+
+        // How far the Chennai board rate sits above the world spot price.
+        function renderPremium() {
+            const spot = state.lastSpot.g24;
+            const last = state.days[state.days.length - 1];
+            if (!spot || !last) return;
+            const age = (parseDate(todayIST()) - parseDate(last[0])) / 86400000;
+            if (age > 3) return;
+            const pct = (last[1] / spot - 1) * 100;
+            $('premium').textContent = 'Plain conversion: USD per ounce × USD→INR ÷ 31.1035 g, with no tax, duty or GST. '
+                + 'The Chennai 24K rate is ' + Math.abs(pct).toFixed(1) + '% ' + (pct >= 0 ? 'above' : 'below')
+                + ' this (15% import duty plus the local market premium).';
         }
 
         async function poll() {
@@ -716,7 +626,7 @@
                 state.lastError = null;
             }
             renderChanges();
-            renderIndia();
+            renderSpot();
             renderStatus();
         }
 
@@ -728,33 +638,34 @@
         }
 
         function renderStatus() {
-            const bar = $('statusBar');
+            const box = $('status');
             const text = $('statusText');
             const sub = $('statusSub');
-            bar.classList.remove('delayed', 'offline');
+            box.className = 'status';
 
             if (!state.lastSuccess) {
                 if (state.lastError) {
-                    bar.classList.add('offline');
-                    text.textContent = 'Offline – cannot reach the price service. Retrying…';
+                    box.classList.add('offline');
+                    text.textContent = 'Offline';
+                    sub.textContent = '· retrying…';
                 } else {
                     text.textContent = 'Connecting…';
+                    sub.textContent = '';
                 }
-                sub.textContent = '';
                 return;
             }
 
             if (document.hidden) {
-                text.textContent = 'Paused while this tab is hidden';
+                text.textContent = 'Paused';
             } else if (Date.now() - state.lastSuccess > STALE_MS) {
-                bar.classList.add('delayed');
-                text.textContent = 'Delayed – retrying…';
+                box.classList.add('delayed');
+                text.textContent = 'Delayed';
             } else {
+                box.classList.add('live');
                 text.textContent = 'Live';
             }
-            let detail = 'checked ' + timeAgo(state.lastSuccess);
-            if (state.sourceTime) detail += ' · market price from ' + timeAgo(state.sourceTime.getTime());
-            sub.textContent = detail;
+            sub.textContent = '· updated ' + timeAgo(state.sourceTime ? state.sourceTime.getTime() : state.lastSuccess);
+            sub.title = 'Checked ' + timeAgo(state.lastSuccess);
         }
 
         function startPolling() {
@@ -768,19 +679,295 @@
             state.pollTimer = null;
         }
 
+        /* ================= Chennai rate and history ================= */
+
+        async function loadHistory() {
+            for (const url of HISTORY_URLS) {
+                try {
+                    const data = await getJSON(url, 'no-cache');
+                    if (!Array.isArray(data.days) || !data.days.length) continue;
+                    const days = data.days;
+                    // Use whichever copy is newer (the site copy can lag a few minutes).
+                    if (state.days.length && days[days.length - 1][0] < state.days[state.days.length - 1][0]) continue;
+                    const first = !state.days.length;
+                    state.days = days;
+                    if (first) {
+                        const last = days[days.length - 1][0];
+                        state.year = +last.slice(0, 4);
+                        state.month = +last.slice(5, 7);
+                        buildYearSelect();
+                    }
+                    renderHero();
+                    renderHistory();
+                    renderPremium();
+                } catch (err) {
+                    console.warn('History not available:', err.message);
+                }
+            }
+            if (!state.days.length) {
+                $('heroDate').textContent = 'Chennai rate not available right now';
+                $('tbody').innerHTML = '<tr><td class="empty" colspan="5">History could not be loaded. Please refresh the page.</td></tr>';
+            }
+        }
+
+        function setChip(el, diff) {
+            const t = trend(diff);
+            el.className = 'chip num ' + t;
+            el.textContent = t === 'flat' ? 'No change from previous day'
+                : (diff > 0 ? '▲ ' : '▼ ') + inrR.format(Math.abs(diff)) + ' from previous day';
+        }
+
+        function renderHero() {
+            const days = state.days;
+            const [date, k24, k22] = days[days.length - 1];
+            const prev = days[days.length - 2];
+            const isToday = date === todayIST();
+            $('heroTitle').textContent = isToday ? "Today's gold rate" : 'Latest gold rate';
+            $('heroDate').textContent = longDate(date) + (isToday ? '' : ' · today\'s rate not out yet');
+            $('c22').innerHTML = inrR.format(k22) + ' <small>/g</small>';
+            $('c24').innerHTML = inrR.format(k24) + ' <small>/g</small>';
+            $('c22-8').textContent = inrR.format(k22 * 8);
+            $('c22-10').textContent = inrR.format(k22 * 10);
+            $('c24-8').textContent = inrR.format(k24 * 8);
+            $('c24-10').textContent = inrR.format(k24 * 10);
+            if (prev) {
+                setChip($('c22-chg'), k22 - prev[2]);
+                setChip($('c24-chg'), k24 - prev[1]);
+            }
+        }
+
+        // Group rows by a key (month "2026-10" or year "2026").
+        function groupBy(keyLen) {
+            const groups = new Map();
+            for (const row of state.days) {
+                const key = row[0].slice(0, keyLen);
+                if (!groups.has(key)) groups.set(key, []);
+                groups.get(key).push(row);
+            }
+            return [...groups.entries()].map(([key, rows]) => {
+                const k22 = rows.map(r => r[2]);
+                const k24 = rows.map(r => r[1]);
+                const avg = (a) => a.reduce((s, v) => s + v, 0) / a.length;
+                return {
+                    key,
+                    avg22: avg(k22), avg24: avg(k24),
+                    low: Math.min(...k22), high: Math.max(...k22),
+                    close: k22[k22.length - 1],
+                    count: rows.length
+                };
+            });
+        }
+
+        function buildYearSelect() {
+            const first = +state.days[0][0].slice(0, 4);
+            const last = +state.days[state.days.length - 1][0].slice(0, 4);
+            let html = '';
+            for (let y = last; y >= first; y--) html += `<option value="${y}">${y}</option>`;
+            $('selYear').innerHTML = html;
+            $('selMonth').innerHTML = MONTHS_LONG.map((m, i) => `<option value="${i + 1}">${m}</option>`).join('');
+        }
+
+        function changeCell(diff, base, asPct) {
+            if (diff == null) return '<td class="flat-t">—</td>';
+            const t = trend(diff);
+            if (t === 'flat') return '<td class="flat-t">—</td>';
+            const arrow = diff > 0 ? '▲ ' : '▼ ';
+            const text = asPct ? signed(diff / base * 100, 2) + '%' : inrR.format(Math.abs(diff * state.unit));
+            return `<td class="${t}-t">${arrow}${text}</td>`;
+        }
+
+        function summaryHTML(items) {
+            return items.map(([label, value]) => `<div>${label}<b>${value}</b></div>`).join('');
+        }
+
+        function renderHistory() {
+            if (!state.days.length) return;
+            const u = state.unit;
+            // Whole rupees from ₹1,000 up (old per-gram rates like ₹770.50 keep their paise).
+            const money = (v) => { const x = v * u; return x >= 1000 ? inr0.format(x) : inrR.format(Math.round(x * 100) / 100); };
+            const view = state.view;
+            const firstYear = +state.days[0][0].slice(0, 4);
+            const lastIso = state.days[state.days.length - 1][0];
+            const lastYear = +lastIso.slice(0, 4);
+            const lastMonth = +lastIso.slice(5, 7);
+
+            $('selMonth').hidden = view !== 'day';
+            $('selYear').hidden = view === 'year';
+            $('prev').hidden = $('next').hidden = view === 'year';
+            $('selYear').value = state.year;
+            $('selMonth').value = state.month;
+
+            let head, rows = [], series = [], summary;
+
+            if (view === 'day') {
+                const key = `${state.year}-${String(state.month).padStart(2, '0')}`;
+                const all = state.days;
+                const start = all.findIndex(r => r[0].startsWith(key));
+                $('prev').disabled = state.year === firstYear && state.month === 1;
+                $('next').disabled = state.year === lastYear && state.month >= lastMonth;
+                head = '<tr><th>Date</th><th>22K</th><th>24K</th><th>Change</th></tr>';
+                if (start >= 0) {
+                    let i = start;
+                    const month = [];
+                    while (i < all.length && all[i][0].startsWith(key)) month.push(i++);
+                    for (const idx of month) {
+                        const [d, k24, k22] = all[idx];
+                        const prev = all[idx - 1];
+                        series.push([parseDate(d).getUTCDate() + ' ' + MONTHS[state.month - 1], k22]);
+                        rows.push(`<tr><td class="date">${parseDate(d).toLocaleDateString('en-IN', { day: '2-digit', month: 'short', weekday: 'short', timeZone: 'UTC' })}</td>`
+                            + `<td>${money(k22)}</td><td>${money(k24)}</td>${changeCell(prev ? k22 - prev[2] : null)}</tr>`);
+                    }
+                    const k22s = month.map(i => all[i][2]);
+                    const open = all[start - 1] ? all[start - 1][2] : k22s[0];
+                    const close = k22s[k22s.length - 1];
+                    summary = [
+                        ['22K at month end', money(close)],
+                        ['Lowest 22K', money(Math.min(...k22s))],
+                        ['Highest 22K', money(Math.max(...k22s))],
+                        ['Change in month', `<span class="${trend(close - open)}-t">${signed((close - open) / open * 100, 2)}%</span>`]
+                    ];
+                    rows.reverse();
+                }
+            } else {
+                const groups = groupBy(view === 'month' ? 7 : 4);
+                const shown = view === 'month'
+                    ? groups.map((g, i) => ({ g, prev: groups[i - 1] })).filter(x => x.g.key.startsWith(String(state.year)))
+                    : groups.map((g, i) => ({ g, prev: groups[i - 1] }));
+                if (view === 'month') {
+                    $('prev').disabled = state.year <= firstYear;
+                    $('next').disabled = state.year >= lastYear;
+                }
+                const label = (key) => view === 'month' ? MONTHS_LONG[+key.slice(5, 7) - 1] : key;
+                head = `<tr><th>${view === 'month' ? 'Month' : 'Year'}</th><th>22K avg</th><th>24K avg</th>`
+                    + '<th class="hide-sm">22K low – high</th><th>Change</th></tr>';
+                for (const { g, prev } of shown) {
+                    series.push([view === 'month' ? MONTHS[+g.key.slice(5, 7) - 1] + ' ' + g.key.slice(0, 4) : g.key, g.avg22]);
+                    rows.push(`<tr><td class="date">${label(g.key)}</td><td>${money(g.avg22)}</td><td>${money(g.avg24)}</td>`
+                        + `<td class="hide-sm">${money(g.low)} – ${money(g.high)}</td>${changeCell(prev ? g.close - prev.close : null, prev && prev.close, true)}</tr>`);
+                }
+                if (shown.length) {
+                    const avgs = shown.map(x => x.g.avg22);
+                    const firstClose = shown[0].prev ? shown[0].prev.close : shown[0].g.avg22;
+                    const lastClose = shown[shown.length - 1].g.close;
+                    summary = [
+                        ['Latest 22K', money(lastClose)],
+                        [view === 'month' ? 'Lowest month avg' : 'Lowest year avg', money(Math.min(...avgs))],
+                        [view === 'month' ? 'Highest month avg' : 'Highest year avg', money(Math.max(...avgs))],
+                        [view === 'month' ? 'Change in year' : `Change since ${shown[0].g.key}`,
+                            `<span class="${trend(lastClose - firstClose)}-t">${signed((lastClose - firstClose) / firstClose * 100, 1)}%</span>`]
+                    ];
+                }
+                rows.reverse();
+            }
+
+            $('thead').innerHTML = head;
+            $('tbody').innerHTML = rows.length ? rows.join('') : '<tr><td class="empty" colspan="5">No rates for this period.</td></tr>';
+            $('summary').innerHTML = summary ? summaryHTML(summary) : '';
+            drawSpark(series, money);
+        }
+
+        // Small area chart of the 22K rate for the period shown.
+        function drawSpark(series, money) {
+            const box = $('spark');
+            if (series.length < 2) { box.innerHTML = ''; box.style.display = 'none'; return; }
+            box.style.display = '';
+            const W = 1000, H = 120, P = 6;
+            const vals = series.map(s => s[1]);
+            const min = Math.min(...vals), max = Math.max(...vals);
+            const x = (i) => i / (series.length - 1) * W;
+            const y = (v) => max === min ? H / 2 : P + (1 - (v - min) / (max - min)) * (H - 2 * P);
+            const pts = series.map((s, i) => `${x(i).toFixed(1)},${y(s[1]).toFixed(1)}`);
+            box.innerHTML = `<svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-hidden="true">
+                <defs><linearGradient id="sg" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0" stop-color="#d4a03a" stop-opacity=".35"/><stop offset="1" stop-color="#d4a03a" stop-opacity="0"/>
+                </linearGradient></defs>
+                <path d="M0,${H} L${pts.join(' L')} L${W},${H} Z" fill="url(#sg)"/>
+                <polyline points="${pts.join(' ')}" fill="none" stroke="#b8862b" stroke-width="2.2" vector-effect="non-scaling-stroke" stroke-linejoin="round"/>
+                <line id="sparkLine" x1="0" x2="0" y1="0" y2="${H}" stroke="#b8862b" stroke-opacity=".4" vector-effect="non-scaling-stroke" visibility="hidden"/>
+            </svg><div class="spark-tip num" id="sparkTip"></div>`;
+            const tip = $('sparkTip');
+            const line = $('sparkLine');
+            box.onpointermove = (e) => {
+                const r = box.getBoundingClientRect();
+                const i = Math.round(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * (series.length - 1));
+                const px = i / (series.length - 1);
+                line.setAttribute('x1', px * W);
+                line.setAttribute('x2', px * W);
+                line.setAttribute('visibility', 'visible');
+                tip.textContent = series[i][0] + ' · 22K ' + money(series[i][1]);
+                tip.style.left = Math.min(r.width - 80, Math.max(80, px * r.width)) + 'px';
+                tip.style.opacity = 1;
+            };
+            box.onpointerleave = () => {
+                tip.style.opacity = 0;
+                line.setAttribute('visibility', 'hidden');
+            };
+        }
+
+        function step(dir) {
+            if (state.view === 'day') {
+                let m = state.month + dir, y = state.year;
+                if (m < 1) { m = 12; y--; }
+                if (m > 12) { m = 1; y++; }
+                state.month = m;
+                state.year = y;
+            } else if (state.view === 'month') {
+                state.year += dir;
+            }
+            renderHistory();
+        }
+
+        function selectTab(group, button) {
+            group.querySelectorAll('button').forEach(b => b.setAttribute('aria-selected', b === button));
+        }
+
+        $('viewTabs').addEventListener('click', (e) => {
+            const b = e.target.closest('button');
+            if (!b) return;
+            selectTab($('viewTabs'), b);
+            state.view = b.dataset.view;
+            renderHistory();
+        });
+        $('unitTabs').addEventListener('click', (e) => {
+            const b = e.target.closest('button');
+            if (!b) return;
+            selectTab($('unitTabs'), b);
+            state.unit = +b.dataset.unit;
+            renderHistory();
+        });
+        $('prev').addEventListener('click', () => step(-1));
+        $('next').addEventListener('click', () => step(1));
+        $('selYear').addEventListener('change', (e) => { state.year = +e.target.value; renderHistory(); });
+        $('selMonth').addEventListener('change', (e) => { state.month = +e.target.value; renderHistory(); });
+
+        /* ================= start ================= */
+
         // Do not waste requests in a hidden tab; refresh at once when it comes back.
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden) stopPolling(); else startPolling();
+            if (document.hidden) {
+                stopPolling();
+            } else {
+                startPolling();
+                if (Date.now() - (state.historyLoaded || 0) > HISTORY_REFRESH_MS) refreshHistory();
+            }
             renderStatus();
         });
 
+        function refreshHistory() {
+            state.historyLoaded = Date.now();
+            loadHistory();
+        }
+
         startPolling();
         loadReference();
+        refreshHistory();
         setInterval(loadReference, REF_REFRESH_MS);
+        setInterval(() => { if (!document.hidden) refreshHistory(); }, HISTORY_REFRESH_MS);
         setInterval(renderStatus, 1000);
 
         // BullionVault chart (third-party script, loaded with defer)
         window.addEventListener('load', () => {
+            $('chartBox').classList.add('ready');
             if (typeof BullionVaultChart === 'undefined') {
                 $('embed').outerHTML = '<div class="chart-error">The chart could not be loaded. Please refresh the page.</div>';
                 return;
