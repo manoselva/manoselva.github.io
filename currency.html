@@ -7,191 +7,116 @@
     <meta name="description" content="Live currency converter for INR, USD, EUR and 150+ other currencies.">
     <link rel="icon" href="https://media.istockphoto.com/id/1214630488/photo/currency-converter-concept.jpg?s=612x612&w=0&k=20&c=HI66nJqgsj6MxcjvoOqNNxHJX-6UXKv58h24jW_zr0g=" type="image/png" />
 
+    <meta name="theme-color" content="#0a0b10">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            color-scheme: dark;
+            --bg: #0a0b10;
+            --ink: #eef0f6;
+            --soft: #b6bbc9;
+            --muted: #7f8597;
+            --line: rgba(255, 255, 255, .08);
+            --line-2: rgba(255, 255, 255, .05);
+            --accent: #8b9cff;
+            --accent-2: #67e8f9;
+            --up: #4ade80;
+            --down: #f87171;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background: linear-gradient(135deg, #000000 0%, #0f1419 30%, #1a2332 70%, #000814 100%);
+            font-family: Manrope, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+            color: var(--ink);
+            line-height: 1.5;
             min-height: 100vh;
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            color: #ffffff;
-            overflow-x: hidden;
-        }
-
-        .background-animation {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
             background:
-                radial-gradient(circle at 15% 85%, rgba(0, 255, 127, 0.15) 0%, transparent 50%),
-                radial-gradient(circle at 85% 15%, rgba(30, 144, 255, 0.2) 0%, transparent 50%),
-                radial-gradient(circle at 50% 50%, rgba(0, 100, 200, 0.1) 0%, transparent 70%);
-            animation: pulse 8s ease-in-out infinite;
-            z-index: -1;
+                radial-gradient(900px 520px at 50% -200px, rgba(139, 156, 255, .16), transparent 70%),
+                radial-gradient(700px 500px at 100% 60%, rgba(103, 232, 249, .04), transparent 70%),
+                var(--bg);
+            background-attachment: fixed;
+            -webkit-font-smoothing: antialiased;
         }
 
-        @keyframes pulse {
-            0%, 100% { opacity: 0.8; transform: scale(1); }
-            50% { opacity: 1; transform: scale(1.05); }
-        }
+        .wrap { max-width: 1080px; margin: 0 auto; padding: 0 22px; }
 
-        /* Shared site navigation */
-        .site-nav {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px;
-            justify-content: center;
-            padding: 20px 20px 0;
-        }
+        /* top bar (same as the gold page) */
+        .top { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 22px 0 26px; }
+        .brand { display: flex; align-items: center; gap: 11px; font-weight: 800; font-size: 1.08rem; letter-spacing: .3px; color: var(--ink); text-decoration: none; }
+        .logo { width: 30px; height: 30px; border-radius: 9px; background: linear-gradient(135deg, var(--accent), var(--accent-2)); box-shadow: 0 4px 18px rgba(139, 156, 255, .35); }
+        .site-nav { display: flex; gap: 4px; padding: 4px; border-radius: 999px; background: rgba(255, 255, 255, .04); border: 1px solid var(--line); }
+        .site-nav a { color: var(--muted); text-decoration: none; font-size: .88rem; font-weight: 600; padding: 7px 16px; border-radius: 999px; transition: color .2s; }
+        .site-nav a:hover { color: var(--ink); }
+        .site-nav a[aria-current="page"] { color: var(--bg); background: var(--ink); }
 
-        .site-nav a {
-            color: rgba(160, 190, 230, 0.85);
-            text-decoration: none;
-            padding: 7px 14px;
-            border-radius: 999px;
-            border: 1px solid rgba(30, 144, 255, 0.25);
-            font-size: 0.9rem;
-            transition: all 0.2s ease;
-        }
-
-        .site-nav a:hover {
-            color: #fff;
-            border-color: rgba(0, 255, 127, 0.5);
-        }
-
-        .site-nav a[aria-current="page"] {
-            color: #000;
-            background: linear-gradient(135deg, #1e90ff 0%, #00ff7f 100%);
-            border-color: transparent;
-            font-weight: 600;
-        }
-
-        .container {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: calc(100vh - 60px);
-            padding: 20px;
-        }
+        .container { display: flex; justify-content: center; padding: 10px 0 50px; }
 
         .converter-card {
-            background: linear-gradient(145deg, rgba(0, 0, 0, 0.8) 0%, rgba(15, 20, 25, 0.9) 100%);
-            backdrop-filter: blur(20px);
-            border: 2px solid rgba(30, 144, 255, 0.3);
-            border-radius: 24px;
-            padding: 40px;
-            width: 100%;
-            max-width: 520px;
-            box-shadow:
-                0 20px 40px rgba(0, 0, 0, 0.7),
-                0 0 20px rgba(30, 144, 255, 0.2),
-                inset 0 1px 0 rgba(0, 255, 127, 0.1);
-            transition: border-color 0.4s ease, box-shadow 0.4s ease;
-            animation: slideUp 0.8s ease-out;
             position: relative;
+            width: 100%;
+            max-width: 540px;
+            border-radius: 28px;
+            padding: 34px;
+            border: 1px solid transparent;
+            background:
+                radial-gradient(520px 260px at 90% -20%, rgba(139, 156, 255, .2), transparent 70%),
+                linear-gradient(165deg, #151827, #0c0d14) padding-box,
+                linear-gradient(135deg, rgba(185, 195, 255, .45), rgba(255, 255, 255, .05) 40%, rgba(255, 255, 255, .05) 60%, rgba(103, 232, 249, .3)) border-box;
+            box-shadow: 0 30px 80px -20px rgba(0, 0, 0, .7);
         }
 
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(50px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .converter-card:hover {
-            border-color: rgba(0, 255, 127, 0.5);
-            box-shadow:
-                0 30px 60px rgba(0, 0, 0, 0.8),
-                0 0 30px rgba(0, 255, 127, 0.3),
-                inset 0 1px 0 rgba(0, 255, 127, 0.2);
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 35px;
-        }
-
-        .title {
-            font-size: 2.5rem;
-            font-weight: 700;
-            background: linear-gradient(135deg, #1e90ff 0%, #00ff7f 50%, #0064c8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-            margin-bottom: 8px;
-        }
+        .header { margin-bottom: 26px; }
+        .title { font-size: clamp(1.6rem, 4vw, 2.1rem); font-weight: 800; letter-spacing: -.5px; }
 
         .subtitle {
-            color: rgba(0, 255, 127, 0.8);
-            font-size: 1rem;
-            font-weight: 500;
-        }
-
-        .subtitle.delayed { color: #ffb347; }
-        .subtitle.offline { color: #ff6b6b; }
-
-        .currency-section {
-            margin-bottom: 10px;
-        }
-
-        .currency-label {
-            display: block;
-            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            margin-top: 10px;
+            font-size: .82rem;
             font-weight: 600;
-            color: rgba(30, 144, 255, 0.9);
-            margin-bottom: 12px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            color: var(--soft);
+            padding: 5px 12px;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, .04);
+            border: 1px solid var(--line-2);
         }
+        .status-indicator { width: 8px; height: 8px; border-radius: 50%; background: #34d17d; margin-right: 8px; animation: pulse 2s infinite; }
+        .subtitle.delayed .status-indicator { background: #f0b429; animation: none; }
+        .subtitle.offline .status-indicator { background: var(--down); animation: none; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(52, 209, 125, .55); } 70% { box-shadow: 0 0 0 8px rgba(52, 209, 125, 0); } 100% { box-shadow: 0 0 0 0 rgba(52, 209, 125, 0); } }
+
+        .currency-section { margin-bottom: 4px; }
+        .currency-label { display: block; font-size: .74rem; font-weight: 700; color: var(--accent); margin-bottom: 10px; text-transform: uppercase; letter-spacing: 1.6px; }
 
         .input-group {
-            position: relative;
             display: flex;
             align-items: center;
-            background: linear-gradient(145deg, rgba(0, 0, 0, 0.6) 0%, rgba(15, 25, 35, 0.8) 100%);
-            border: 2px solid rgba(30, 144, 255, 0.2);
+            background: rgba(0, 0, 0, .28);
+            border: 1px solid var(--line);
             border-radius: 16px;
             overflow: hidden;
-            transition: all 0.3s ease;
+            transition: border-color .2s, box-shadow .2s;
         }
+        .input-group:focus-within { border-color: rgba(139, 156, 255, .6); box-shadow: 0 0 0 4px rgba(139, 156, 255, .12); }
 
-        .input-group:focus-within {
-            border-color: rgba(0, 255, 127, 0.6);
-            box-shadow: 0 0 20px rgba(0, 255, 127, 0.2);
-        }
-
-        .currency-flag {
-            padding: 0 4px 0 16px;
-            font-size: 1.5rem;
-        }
-
+        .currency-flag { padding: 0 4px 0 16px; font-size: 1.4rem; }
         .currency-select {
             background: transparent;
             border: none;
             outline: none;
-            color: rgba(0, 255, 127, 0.9);
-            font-weight: 600;
-            font-size: 0.95rem;
-            padding: 20px 8px;
+            color: var(--ink);
+            font: inherit;
+            font-weight: 700;
+            font-size: .95rem;
+            padding: 18px 8px;
             cursor: pointer;
             max-width: 110px;
-            border-right: 1px solid rgba(30, 144, 255, 0.3);
+            border-right: 1px solid var(--line);
         }
-
-        .currency-select option {
-            background: #0f1419;
-            color: #fff;
-        }
+        .currency-select option { background: #12141c; color: var(--ink); }
 
         .currency-input {
             flex: 1;
@@ -199,234 +124,100 @@
             background: transparent;
             border: none;
             outline: none;
-            color: #ffffff;
-            font-size: 1.2rem;
-            padding: 20px;
-            font-weight: 500;
+            color: var(--ink);
+            font: inherit;
+            font-size: 1.35rem;
+            font-weight: 700;
+            padding: 18px 20px;
             text-align: right;
             font-variant-numeric: tabular-nums;
         }
+        .currency-input::placeholder { color: var(--muted); font-weight: 500; }
+        .currency-input:read-only { color: #fff; }
 
-        .currency-input::placeholder {
-            color: rgba(30, 144, 255, 0.4);
-        }
+        .currency-name { font-size: .8rem; color: var(--muted); margin-top: 6px; padding-left: 4px; }
 
-        .currency-input:read-only {
-            color: rgba(0, 255, 127, 0.9);
-        }
-
-        .currency-name {
-            font-size: 0.8rem;
-            color: rgba(160, 190, 230, 0.6);
-            margin-top: 6px;
-            padding-left: 4px;
-        }
-
-        .swap-button {
-            display: flex;
-            justify-content: center;
-            margin: 15px 0;
-        }
-
+        .swap-button { display: flex; justify-content: center; margin: 10px 0; }
         .swap-btn {
-            background: linear-gradient(135deg, #1e90ff 0%, #00ff7f 100%);
-            width: 55px;
-            height: 55px;
+            width: 46px;
+            height: 46px;
             border-radius: 50%;
-            color: #000;
-            font-size: 1.3rem;
-            font-weight: bold;
+            border: 1px solid var(--line);
+            background: #12141c;
+            color: var(--accent);
+            font-size: 1.2rem;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.4s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 8px 25px rgba(30, 144, 255, 0.4);
-            border: 2px solid rgba(0, 0, 0, 0.3);
+            transition: transform .3s, border-color .2s;
         }
+        .swap-btn:hover { transform: rotate(180deg); border-color: rgba(139, 156, 255, .6); }
 
-        .swap-btn:hover {
-            transform: rotate(180deg) scale(1.15);
-            box-shadow: 0 12px 35px rgba(0, 255, 127, 0.6);
-            background: linear-gradient(135deg, #00ff7f 0%, #1e90ff 100%);
-        }
+        .rate-line { text-align: center; margin-top: 20px; color: var(--soft); font-size: .92rem; font-variant-numeric: tabular-nums; }
 
-        .rate-line {
-            text-align: center;
-            margin-top: 20px;
-            color: rgba(255, 255, 255, 0.85);
-            font-size: 0.95rem;
-            font-variant-numeric: tabular-nums;
-        }
+        .badge { display: inline-block; font-size: .66rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; margin-left: 6px; vertical-align: middle; text-transform: uppercase; letter-spacing: .6px; }
+        .badge.live { color: var(--up); background: rgba(74, 222, 128, .1); border: 1px solid rgba(74, 222, 128, .3); }
+        .badge.daily { color: var(--accent); background: rgba(139, 156, 255, .1); border: 1px solid rgba(139, 156, 255, .3); }
 
-        .badge {
-            display: inline-block;
-            font-size: 0.7rem;
-            font-weight: 700;
-            padding: 2px 8px;
-            border-radius: 999px;
-            margin-left: 6px;
-            vertical-align: middle;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-        }
-
-        .badge.live {
-            background: rgba(0, 255, 127, 0.15);
-            color: #00ff7f;
-            border: 1px solid rgba(0, 255, 127, 0.4);
-        }
-
-        .badge.daily {
-            background: rgba(30, 144, 255, 0.15);
-            color: #6cb6ff;
-            border: 1px solid rgba(30, 144, 255, 0.4);
-        }
-
-        .rates-section {
-            margin-top: 30px;
-            padding-top: 25px;
-            border-top: 2px solid rgba(30, 144, 255, 0.2);
-        }
-
-        .rates-title {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 20px;
-            color: rgba(0, 255, 127, 0.9);
-            text-align: center;
-        }
+        .rates-section { margin-top: 28px; padding-top: 24px; border-top: 1px solid var(--line); }
+        .rates-title { font-size: 1.05rem; font-weight: 800; margin-bottom: 14px; }
 
         .rate-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 15px 20px;
-            background: linear-gradient(135deg, rgba(0, 0, 0, 0.4) 0%, rgba(15, 25, 35, 0.6) 100%);
-            border: 1px solid rgba(30, 144, 255, 0.2);
-            border-radius: 12px;
-            margin-bottom: 10px;
-            transition: all 0.3s ease;
+            padding: 13px 16px;
+            background: rgba(255, 255, 255, .03);
+            border: 1px solid var(--line-2);
+            border-radius: 14px;
+            margin-bottom: 8px;
             cursor: pointer;
+            transition: background .2s, border-color .2s;
         }
-
-        .rate-item:hover {
-            background: linear-gradient(135deg, rgba(30, 144, 255, 0.1) 0%, rgba(0, 255, 127, 0.05) 100%);
-            transform: translateX(8px);
-            border-color: rgba(0, 255, 127, 0.4);
-            box-shadow: 0 5px 15px rgba(0, 255, 127, 0.2);
-        }
-
-        .rate-pair {
-            font-weight: 600;
-            color: #ffffff;
-        }
-
-        .rate-value {
-            color: #00ff7f;
-            font-weight: 700;
-            font-size: 1.1rem;
-            font-variant-numeric: tabular-nums;
-            border-radius: 6px;
-            padding: 0 4px;
-        }
+        .rate-item:hover { background: rgba(139, 156, 255, .07); border-color: rgba(139, 156, 255, .3); }
+        .rate-pair { font-weight: 700; color: var(--ink); }
+        .rate-value { color: #fff; font-weight: 800; font-size: 1.05rem; font-variant-numeric: tabular-nums; border-radius: 6px; padding: 0 4px; }
 
         .tick-up { animation: tickUp 1.2s ease-out; }
         .tick-down { animation: tickDown 1.2s ease-out; }
+        @keyframes tickUp { 0% { color: var(--up); } 100% { color: inherit; } }
+        @keyframes tickDown { 0% { color: var(--down); } 100% { color: inherit; } }
 
-        @keyframes tickUp {
-            0% { background: rgba(0, 255, 127, 0.35); }
-            100% { background: transparent; }
-        }
+        .loading { text-align: center; color: var(--muted); padding: 20px; }
+        .error { background: rgba(248, 113, 113, .08); border: 1px solid rgba(248, 113, 113, .35); color: var(--down); padding: 13px; border-radius: 12px; text-align: center; margin-bottom: 12px; font-size: .88rem; }
 
-        @keyframes tickDown {
-            0% { background: rgba(255, 80, 80, 0.35); }
-            100% { background: transparent; }
-        }
-
-        .loading {
-            text-align: center;
-            color: rgba(30, 144, 255, 0.8);
-            font-style: italic;
-            padding: 20px;
-        }
-
-        .error {
-            background: linear-gradient(135deg, rgba(255, 0, 0, 0.1) 0%, rgba(200, 0, 0, 0.1) 100%);
-            border: 2px solid rgba(255, 100, 100, 0.4);
-            color: #ff6b6b;
-            padding: 15px;
-            border-radius: 12px;
-            text-align: center;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-        }
-
-        .status-indicator {
-            display: inline-block;
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: currentColor;
-            margin-right: 8px;
-            animation: blink 2s infinite;
-        }
-
-        @keyframes blink {
-            0%, 50% { opacity: 1; }
-            51%, 100% { opacity: 0.3; }
-        }
-
-        .last-updated {
-            text-align: center;
-            color: rgba(30, 144, 255, 0.6);
-            font-size: 0.8rem;
-            margin-top: 15px;
-            line-height: 1.6;
-        }
-
-        .last-updated a {
-            color: rgba(30, 144, 255, 0.8);
-        }
+        .last-updated { text-align: center; color: var(--muted); font-size: .78rem; margin-top: 14px; line-height: 1.6; }
+        .last-updated a { color: var(--accent); }
 
         @media (max-width: 600px) {
-            .converter-card {
-                padding: 30px 18px;
-            }
-
-            .title {
-                font-size: 2rem;
-            }
-
-            .currency-input {
-                font-size: 1.1rem;
-                padding: 18px 14px;
-            }
-
-            .currency-flag {
-                padding-left: 12px;
-            }
+            .wrap { padding: 0 14px; }
+            .top { padding: 16px 0 18px; }
+            .converter-card { padding: 24px 16px; border-radius: 22px; }
+            .currency-input { font-size: 1.15rem; padding: 16px 14px; }
+            .currency-flag { padding-left: 12px; }
         }
 
         @media (prefers-reduced-motion: reduce) {
-            .background-animation, .status-indicator, .tick-up, .tick-down, .converter-card { animation: none; }
-            .swap-btn:hover { transform: none; }
-            .rate-item:hover { transform: none; }
+            *, *::before, *::after { animation: none !important; transition: none !important; }
         }
     </style>
 </head>
 <body>
-    <div class="background-animation"></div>
-
-    <nav class="site-nav">
-        <a href="./">🥇 Gold &amp; Silver</a>
-        <a href="currency.html" aria-current="page">💱 Currency</a>
-    </nav>
+    <div class="wrap">
+    <header class="top">
+        <a class="brand" href="./"><span class="logo"></span>Gold Rate</a>
+        <nav class="site-nav">
+            <a href="./">Gold &amp; Silver</a>
+            <a href="currency.html" aria-current="page">Currency</a>
+        </nav>
+    </header>
 
     <div class="container">
         <div class="converter-card">
             <div class="header">
-                <h1 class="title">Currency Exchange</h1>
+                <h1 class="title">Currency converter</h1>
                 <p class="subtitle" id="subtitle" role="status"><span class="status-indicator"></span><span id="statusText">Connecting…</span></p>
             </div>
 
@@ -457,7 +248,7 @@
             <div class="rate-line" id="rateLine"></div>
 
             <div class="rates-section">
-                <h3 class="rates-title">Live Exchange Rates</h3>
+                <h3 class="rates-title">Popular rates</h3>
                 <div id="ratesError"></div>
                 <div id="ratesContainer">
                     <div class="loading">Fetching live exchange rates...</div>
@@ -465,6 +256,7 @@
                 <div class="last-updated" id="lastUpdated"></div>
             </div>
         </div>
+    </div>
     </div>
 
     <script>
